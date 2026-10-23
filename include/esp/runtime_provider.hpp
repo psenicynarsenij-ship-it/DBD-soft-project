@@ -1,5 +1,6 @@
 #pragma once
 #include "frame_sources.hpp"
+#include "dbd_connection.hpp"
 #include <atomic>
 #include <condition_variable>
 #include <mutex>
@@ -12,6 +13,7 @@ struct RuntimeDiagnostics {
     SourceState state=SourceState::Starting;
     SourceKind kind=SourceKind::Demo;
     bool fallback{};
+    DbdConnectionStatus dbd;
     std::uint64_t acceptedFrames{}, invalidFrames{};
     double acquisitionMs{}, sourceFps{}, ageMs{};
     std::string message, recording;

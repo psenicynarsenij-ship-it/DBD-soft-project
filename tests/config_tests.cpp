@@ -42,6 +42,10 @@ int main() {
         Require(esp::LoadConfig(configPath,loaded,status)&&loaded.maxDistance==99,"load overwritten config");
         nlohmann::json saved;
         {std::ifstream in(configPath);in>>saved;}
+        auto unsupported=saved;unsupported["runtime"]["source"]="dbd";
+        {std::ofstream out(configPath);out<<unsupported;}
+        const auto previousRuntime=loaded.runtime;
+        Require(!esp::LoadConfig(configPath,loaded,status)&&loaded.runtime==previousRuntime,"unimplemented DBD source must not silently become Demo");
         auto legacy=saved;legacy.erase("camera");legacy.erase("runtime");legacy["visuals"].erase("max_draw_entities");
         for(const auto* field:{"killer_direction","killer_cone","killer_cone_degrees","killer_arrow_length","killer_arrow_color","killer_arrow_opacity","killer_cone_opacity"})
             legacy["visuals"].erase(field);

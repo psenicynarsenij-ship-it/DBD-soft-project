@@ -114,6 +114,8 @@ RenderStats RenderEntities(const Frame& frame,const VisualConfig& c,float width,
     ImGui::SetNextWindowPos({12,12},ImGuiCond_Always);ImGui::SetNextWindowBgAlpha(0.8f);
     if(ImGui::Begin("Source diagnostics",nullptr,ImGuiWindowFlags_NoDecoration|ImGuiWindowFlags_AlwaysAutoResize|ImGuiWindowFlags_NoInputs|ImGuiWindowFlags_NoSavedSettings|ImGuiWindowFlags_NoFocusOnAppearing)) {
         ImGui::TextColored({1,0.8f,0.2f,1},"%s | %s%s",SourceKindName(diagnostics.kind),SourceStateName(diagnostics.state),diagnostics.fallback?" | DEMO FALLBACK":"");
+        ImGui::Text("DBD %.*s: %.*s (no verified game adapter)",static_cast<int>(diagnostics.dbd.targetVersion.size()),diagnostics.dbd.targetVersion.data(),
+            static_cast<int>(diagnostics.dbd.state.size()),diagnostics.dbd.state.data());
         ImGui::TextUnformatted(frame.source.c_str());
         ImGui::Text("Render %.1f FPS | Source %.1f FPS | Acquire %.2f ms | Age %.0f ms",ImGui::GetIO().Framerate,diagnostics.sourceFps,diagnostics.acquisitionMs,diagnostics.ageMs+std::chrono::duration<double,std::milli>(std::chrono::steady_clock::now()-diagnostics.measuredAt).count());
         ImGui::Text("Objects %zu | Visible %zu | Drawn %zu | Accepted %llu | Invalid polls %llu",frame.entities.size(),visible,candidates.size(),
