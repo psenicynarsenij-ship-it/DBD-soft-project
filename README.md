@@ -1,17 +1,30 @@
-# Visual ESP Overlay 0.3 — подключаемые источники Frame
+# Visual ESP Overlay 0.3.1 — подключаемые источники Frame
 
-C++20, Windows x64, DirectX 11, DirectComposition, Dear ImGui, CMake. PR #1 интегрирован в `work`; версия 0.3 расширяет его существующий проект.
+C++20, Windows x64, DirectX 11, DirectComposition, Dear ImGui, CMake. PR #1 и PR #2 интегрированы в `work`; версия 0.3.1 расширяет его существующий проект.
 
 Приложение поддерживает **Demo**, **локальный JSON** и **Replay JSONL**. Оно не открывает процесс Dead by Daylight и не читает память игры. Все поставляемые примеры и генератор используют синтетические данные. Версия `10.2.2` в `offsets.json` остаётся меткой, реальные адреса равны `null` и не используются. Внешний JSON обозначается `LOCAL JSON (unverified producer)`: наличие файла не подтверждает происхождение данных из игры.
 
 ## Скачать и запустить
 
-В GitHub выберите ветку `feature/runtime-frame-sources`, папку `downloads`, затем **Download raw file** для нужного ZIP:
+В GitHub выберите ветку `feature/dbd-supported-source-assessment`, папку `downloads`, затем **Download raw file** для нужного ZIP:
 
-- `VisualESPOverlay-demo-win64.zip`: `VisualESPOverlay.exe`, консольный `frame_tool.exe`, `offsets.json`, `config.example.json`, `example.frame.json`, документация и лицензии.
+- `VisualESPOverlay-demo-win64.zip`: `VisualESPOverlay.exe`, консольный `frame_tool.exe`, `offsets.json`, `config.example.json`, `example.frame.json`, документация, отчёт исследования в docs/ и лицензии.
 - `VisualESPOverlay-source.zip`: исходники, CMake, примеры и тесты без build-каталогов и вложенных архивов.
 
 Распакуйте Windows ZIP в доступную для записи папку и запустите `VisualESPOverlay.exe`. По умолчанию включён Demo. Меню открыто; **Insert** скрывает его и включает click-through. Настройки `config.json` и относительные пути источников/записей разрешаются рядом с exe, независимо от рабочего каталога. Образец `config.example.json` не перезаписывает существующие настройки: его можно скопировать в `config.json` или сохранить настройки кнопкой **Save**.
+
+## Реальные данные DBD 10.2.2: состояние исследования
+
+**Подтверждённого подключения к реальной игре нет.** Подходящий документированный spatial feed не найден в прочитанных материалах; актуальные сайты BHVR/Steamworks/Overwolf блокируются прокси этой среды. Это не доказывает отсутствие любых партнёрских или новых интерфейсов. Полный отчёт с источниками, датами, доступными/недостающими полями и ограничениями — [docs/DBD_DATA_SOURCES.md](docs/DBD_DATA_SOURCES.md); журнал — [docs/dbd-source-evidence.json](docs/dbd-source-evidence.json).
+
+В существующем HUD добавлена строка **DBD 10.2.2: NOT CONNECTED**. LIVE по-прежнему означает свежие кадры выбранного транспорта, а не подключение к DBD. Demo, локальный JSON, Replay и явно помеченный fallback сохранены; имя source и произвольные JSON-поля не подтверждают происхождение данных. Фиктивный DBDDataSource/режим dbd не добавлен.
+
+```powershell
+.\frame_tool.exe dbd-status
+$LASTEXITCODE # 3: ожидаемое unavailable, не ошибка передачи тестовых кадров
+```
+
+Команда сообщает возможности данного binary и не обращается к игре или запущенному overlay. `connected`, `adapter_implemented`, `live_session_validated` равны false. Интерфейс, FOV, стрелка/сектор, hotkeys и click-through сохранены.
 
 ## Сборка Visual Studio 2022
 
@@ -150,7 +163,7 @@ HUD показывает render FPS, частоту принятых кадро�
 
 ## Автоматические проверки
 
-Девять CTest: исходные математика/FOV и конфигурация, сериализация, некорректные данные, конкурентные читатели/worker, исчезновение/timeout/восстановление JSON, запись/Replay, снимок 10000 объектов и CPU ImGui geometry/budget. Последний проверяет построение команд отрисовки без GPU и не заменяет проверку прозрачности окна.
+Одиннадцать CTest: исходные математика/FOV и конфигурация, сериализация, некорректные данные, конкурентные читатели/worker, исчезновение/timeout/восстановление JSON, запись/Replay, снимок 10000 объектов и CPU ImGui geometry/budget. Дополнительно проверяются поддельные признаки подключения JSON/fallback и точный ожидаемый exit code 3 команды dbd-status. CPU ImGui тест проверяет построение команд отрисовки без GPU и не заменяет проверку прозрачности окна.
 
 Linux/macOS, C++20-компилятор, CMake и Git:
 

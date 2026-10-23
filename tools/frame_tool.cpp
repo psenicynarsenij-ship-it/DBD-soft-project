@@ -1,4 +1,5 @@
 #include "esp/frame_sources.hpp"
+#include "esp/dbd_connection.hpp"
 #include <chrono>
 #include <fstream>
 #include <iostream>
@@ -23,7 +24,10 @@ esp::Frame Demo(std::uint64_t sequence,int count) {
 }
 int main(int argc,char** argv) {
     try {
-        if(argc<3) {std::cerr<<"frame_tool generate FILE [objects=11]\nframe_tool publish FILE [frames=300] [objects=11]\nframe_tool record FILE [frames=120] [objects=11]\nframe_tool validate FILE\nframe_tool benchmark OBJECTS [iterations=10]\n";return 2;}
+        if(argc==2&&std::string(argv[1])=="dbd-status") {
+            std::cout<<esp::DbdBuildStatusJson()<<'\n';return 3; // Expected: no verified game adapter.
+        }
+        if(argc<3) {std::cerr<<"frame_tool generate FILE [objects=11]\nframe_tool publish FILE [frames=300] [objects=11]\nframe_tool record FILE [frames=120] [objects=11]\nframe_tool validate FILE\nframe_tool benchmark OBJECTS [iterations=10]\nframe_tool dbd-status (exit 3: not connected)\n";return 2;}
         const std::string command=argv[1];const auto path=esp::ResolveDataPath(std::filesystem::current_path(),argv[2]);
         if(command=="generate") {
             const int count=argc>3?Number(argv[3],static_cast<int>(esp::MaxFrameEntities)):11;

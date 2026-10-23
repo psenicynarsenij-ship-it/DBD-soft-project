@@ -1,0 +1,122 @@
+{
+  "schema_version": 1,
+  "assessment_date": "2026-10-23",
+  "repository": "https://github.com/psenicynarsenij-ship-it/DBD-soft-project",
+  "target_version_label": "10.2.2",
+  "game_build_observed": false,
+  "live_game_session_observed": false,
+  "suitable_documented_spatial_source_found": false,
+  "conclusion_scope": "No usable verified source was identified in the reviewed materials; current BHVR/Steamworks/Overwolf websites were inaccessible. This is not proof that no partner/private/current interface exists.",
+  "direct_web_requests": [
+    {
+      "url": "https://deadbydaylight.com/news/",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "assessment": "unread: egress proxy rejected CONNECT; not an origin-server finding"
+    },
+    {
+      "url": "https://support.deadbydaylight.com/hc/en-us/search?query=API",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "assessment": "unread: egress proxy rejected CONNECT; not an origin-server finding"
+    },
+    {
+      "url": "https://forums.bhvr.com/dead-by-daylight/kb/patchnotes",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "assessment": "unread: egress proxy rejected CONNECT; not an origin-server finding"
+    },
+    {
+      "url": "https://partner.steamgames.com/doc/webapi/ISteamUserStats",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "assessment": "unread: egress proxy rejected CONNECT; not an origin-server finding"
+    },
+    {
+      "url": "https://partner.steamgames.com/doc/webapi_overview",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "assessment": "unread: egress proxy rejected CONNECT; not an origin-server finding"
+    },
+    {
+      "url": "https://dev.overwolf.com/ow-native/live-game-data-gep/supported-games/dead-by-daylight/",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "assessment": "unread: egress proxy rejected CONNECT; not an origin-server finding"
+    },
+    {
+      "url": "https://dev.overwolf.com/ow-native/live-game-data-gep/supported-games/",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "assessment": "unread: egress proxy rejected CONNECT; not an origin-server finding"
+    },
+    {
+      "url": "https://dbd.tricky.lol/",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "assessment": "unread: egress proxy rejected CONNECT; not an origin-server finding"
+    },
+    {
+      "url": "https://game-events-status.overwolf.com/all_prod.json",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "assessment": "unread: egress proxy rejected CONNECT; not an origin-server finding"
+    }
+  ],
+  "reviewed_snapshots": [
+    {
+      "id": "overwolf_archived_docs",
+      "repository": "overwolf/overwolf.github.io",
+      "sha": "67f2ffad3045b980a3201ec5547fd911d541feaa",
+      "date": "2024-09-01T08:58:23Z",
+      "archived": true,
+      "primary_provider_material": true,
+      "documents": [
+        "README.md",
+        "pages/api/live-game-data/live-game-data.mdx",
+        "pages/api/live-game-data/supported-games/",
+        "src/components/game-events-status/EventsData.jsx"
+      ],
+      "tree_truncated": false,
+      "tree_entries": 1902,
+      "dbd_page_in_archived_supported_games": [],
+      "limitation": "Archived 2024 snapshot; does not establish current DBD 10.2.2 support or lack thereof."
+    },
+    {
+      "id": "steam_sdk_mirror",
+      "repo": "rlabrecque/SteamworksSDK",
+      "sha": "df2baabf574a738ef1ea90a7e89339107fc0a279",
+      "date": "2026-08-07T04:58:20Z",
+      "path": "public/steam/isteamuserstats.h",
+      "primary_provider_material": false,
+      "limitation": "Community mirror of Valve SDK declarations. Official Steamworks web documentation and DBD-specific schema were not retrieved."
+    },
+    {
+      "id": "dbd_tricky_community_wrapper",
+      "repository": "BorisGerretzen/DbdTricky",
+      "sha": "ef5dbd5fb9795a1825dbded102a34061308e51de",
+      "date": "2024-12-11T18:58:47Z",
+      "readme": "README.md",
+      "archived": false,
+      "primary_provider_material": false,
+      "limitation": "Community client README, not BHVR documentation or verification of a live service response."
+    },
+    {
+      "id": "legacy_dbd_api",
+      "repository": "OutOfBears/DBD-API",
+      "sha": "5399776c4a37b16d32bc33226283958dfa6a6394",
+      "date": "2020-11-05T19:48:32Z",
+      "readme": "README.md",
+      "archived": true,
+      "primary_provider_material": false,
+      "limitation": "Archived unofficial project; its backend/assets implementation is not a supported BHVR spatial feed."
+    }
+  ],
+  "code_policy": {
+    "game_process_access_implemented": false,
+    "undocumented_game_backend_queried": false,
+    "anti_cheat_bypass_implemented": false,
+    "fake_dbd_data_source_added": false
+  },
+  "missing_verified_feed_fields": [
+    "survivor_positions",
+    "killer_position",
+    "generator_positions",
+    "hook_positions",
+    "exit_gate_positions",
+    "camera_position",
+    "camera_view_projection",
+    "killer_look_direction"
+  ]
+}

@@ -16,7 +16,7 @@ RuntimeDataProvider::RuntimeDataProvider(std::unique_ptr<IFrameSource> source,Ru
     ValidateRuntimeOptions(options_);if(!source_) throw std::invalid_argument("null frame source");
     if(options_.record&&recordingPath_.empty()) throw std::invalid_argument("recording path is required");
     SetContext(initialContext.aspect,initialContext.camera);
-    auto initial=std::make_shared<RuntimeSnapshot>();initial->diagnostics.kind=options_.kind;
+    auto initial=std::make_shared<RuntimeSnapshot>();initial->diagnostics.kind=options_.kind;initial->diagnostics.dbd=DescribeDbdConnection(options_.kind);
     latest_.store(initial);worker_=std::thread([this]{Run();});
 }
 RuntimeDataProvider::~RuntimeDataProvider() {Stop();}
@@ -34,6 +34,7 @@ std::shared_ptr<const RuntimeSnapshot> RuntimeDataProvider::Latest() const {
         static const auto empty=std::make_shared<const Frame>();
         auto expired=std::make_shared<RuntimeSnapshot>(*snapshot);expired->frame=empty;
         expired->diagnostics.state=SourceState::Reconnecting;expired->diagnostics.fallback=false;
+        expired->diagnostics.dbd=DescribeDbdConnection(expired->diagnostics.kind);
         expired->diagnostics.message="Snapshot expired; waiting for source worker";
         expired->diagnostics.sourceFps=0;expired->validUntil.reset();return expired;
     }
@@ -98,6 +99,7 @@ void RuntimeDataProvider::Run() {
                 recorder->Write(*displayed,Clock::now());d.recording="RECORDING";
             } catch(const std::exception& e) {d.recording=std::string("RECORD ERROR: ")+e.what();recordFailed=true;recorder.reset();}
         } else if(!options_.record) d.recording="OFF";
+        d.dbd=DescribeDbdConnection(options_.kind,d.fallback);
         auto snapshot=std::make_shared<RuntimeSnapshot>();snapshot->frame=std::move(displayed);snapshot->diagnostics=d;
         if(d.fallback) snapshot->validUntil=now+std::chrono::milliseconds(options_.staleMs);
         else if(current&&received&&read.state!=ReadState::Ended&&read.state!=ReadState::Scheduled)
@@ -108,6 +110,6 @@ void RuntimeDataProvider::Run() {
         if(stop_) break;
     }
     auto stopped=std::make_shared<RuntimeSnapshot>();stopped->diagnostics=d;stopped->diagnostics.state=SourceState::Stopped;
-    stopped->diagnostics.recording="OFF";stopped->diagnostics.fallback=false;latest_.store(std::move(stopped),std::memory_order_release);
+    stopped->diagnostics.recording="OFF";stopped->diagnostics.fallback=false;stopped->diagnostics.dbd=DescribeDbdConnection(options_.kind);latest_.store(std::move(stopped),std::memory_order_release);
 }
 }
