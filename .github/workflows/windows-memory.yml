@@ -5,28 +5,16 @@ on:
   workflow_dispatch:
 permissions:
   contents: read
-  actions: read
 jobs:
   windows:
     runs-on: windows-2022
     steps:
       - uses: actions/checkout@v4
-      - name: Recover prior test output
-        if: contains(github.event.head_commit.message, '[inspect]')
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: gh run download 39994497821 --name Windows-x64-Release-and-evidence --dir build/native-windows
-      - name: Inspect prior captured pixels
-        if: contains(github.event.head_commit.message, '[inspect]')
-        run: python tools/inspect_capture.py
       - name: Configure MSVC x64 Release
-        if: ${{ !contains(github.event.head_commit.message, '[inspect]') }}
         run: cmake -S . -B build/native-windows -A x64 -DESP_BUILD_CONFIG_TESTS=ON -DESP_BUILD_RENDER_TESTS=ON -DESP_BUILD_TOOLS=ON
       - name: Build
-        if: ${{ !contains(github.event.head_commit.message, '[inspect]') }}
         run: cmake --build build/native-windows --config Release --parallel 4
       - name: Test actual Windows APIs and DX11
-        if: ${{ !contains(github.event.head_commit.message, '[inspect]') }}
         run: ctest --test-dir build/native-windows -C Release --output-on-failure --output-junit windows-tests.xml
       - name: Publish readable test diagnostics
         if: always()

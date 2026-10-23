@@ -31,6 +31,8 @@ print('::notice title=Captured pixel diagnostics::'+json.dumps(report))
 # A small lossless crop, encoded in one check annotation for restricted log clients.
 import base64
 import zlib
+if not points:
+    raise SystemExit(0)
 cx, cy = (min(x for x,y in points)+max(x for x,y in points))//2, round(h*0.5166666667)
 crop_w, crop_h = 64, 64
 raw = bytearray()

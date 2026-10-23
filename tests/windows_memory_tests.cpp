@@ -33,9 +33,15 @@ std::shared_ptr<const esp::RuntimeSnapshot> Wait(esp::RuntimeDataProvider& runti
     throw std::runtime_error("Runtime timeout: "+snap->diagnostics.message);
 }
 void Paint(esp::Overlay& overlay,const esp::RuntimeSnapshot& snapshot,const std::filesystem::path& capture){
-    overlay.Poll();Check(overlay.BeginFrame(),"BeginFrame");esp::VisualConfig config;config.killerCone=true;
-    auto stats=esp::RenderEntities(*snapshot.frame,config,overlay.Width(),overlay.Height(),snapshot.diagnostics);
-    Check(stats.drawn==5,"Existing renderer draws all five fixture categories");overlay.EndFrame(capture);
+    esp::VisualConfig config;config.killerCone=true;
+    // ImGui auto-fit uses the previous frame's content size. Allow the existing
+    // diagnostics HUD to settle before checking unobscured background geometry.
+    for(int pass=0;pass<4;++pass) {
+        overlay.Poll();Check(overlay.BeginFrame(),"BeginFrame");
+        auto stats=esp::RenderEntities(*snapshot.frame,config,overlay.Width(),overlay.Height(),snapshot.diagnostics);
+        Check(stats.drawn==5,"Existing renderer draws all five fixture categories");
+        overlay.EndFrame(pass==3?capture:std::filesystem::path{});
+    }
     // Verify actual GPU pixels in the survivor's projected box, outside the HUD.
     auto feet=esp::WorldToScreen(snapshot.frame->entities[0].position,snapshot.frame->camera.viewProjection,overlay.Width(),overlay.Height());
     auto head=esp::WorldToScreen(snapshot.frame->entities[0].top,snapshot.frame->camera.viewProjection,overlay.Width(),overlay.Height());Check(feet&&head,"Fixture projection visible");
