@@ -1,0 +1,65 @@
+{
+  "tested_source_commit": "09cde436d802480a1cd4df3fe91aa698feecb54c",
+  "run_url": "https://github.com/psenicynarsenij-ship-it/DBD-soft-project/actions/runs/39996145579",
+  "platform": "GitHub Actions windows-2022, MSVC x64 Release",
+  "ctest": {
+    "passed": 14,
+    "failed": 0
+  },
+  "reports": [
+    {
+      "checks": [
+        "real_cross_process_read",
+        "partial_read",
+        "bounds",
+        "module_identity",
+        "movement",
+        "camera",
+        "disappearance",
+        "invalid_matrix",
+        "stale_clear",
+        "invalid_count",
+        "exit",
+        "reconnect",
+        "no_demo"
+      ],
+      "dbd_verified": false,
+      "dx11_pixels_verified": true,
+      "fixture_pid": 2940,
+      "initial_x": -6.0,
+      "module_base": 140695713218560,
+      "moved_x": -1.0,
+      "read_api": "ReadProcessMemory",
+      "reconnected_pid": 1204,
+      "root_address": 1732665933824
+    },
+    {
+      "checks": [
+        "real_cross_process_read",
+        "partial_read",
+        "bounds",
+        "module_identity",
+        "movement",
+        "camera",
+        "disappearance",
+        "invalid_matrix",
+        "stale_clear",
+        "invalid_count",
+        "exit",
+        "reconnect",
+        "no_demo"
+      ],
+      "dbd_verified": false,
+      "dx11_pixels_verified": false,
+      "fixture_pid": 5984,
+      "initial_x": -6.0,
+      "module_base": 140695713218560,
+      "moved_x": -1.0,
+      "read_api": "ReadProcessMemory",
+      "reconnected_pid": 4276,
+      "root_address": 1284786487296
+    }
+  ],
+  "dbd_verified": false,
+  "manual_click_through_verified": false
+}

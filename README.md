@@ -1,6 +1,6 @@
 # Visual ESP Overlay 0.4 — внешнее чтение и подключаемые источники Frame
 
-C++20, Windows x64, DirectX 11, DirectComposition, Dear ImGui, CMake. PR #1 и PR #2 интегрированы в `work`; версия 0.3.1 расширяет его существующий проект.
+C++20, Windows x64, DirectX 11, DirectComposition, Dear ImGui, CMake. PR #1 и PR #2 интегрированы в `work`; версия 0.4 продолжает существующий проект на базе PR #3.
 
 Приложение поддерживает **Demo**, **локальный JSON**, **Replay JSONL** и **Live memory (Windows x64)**. Последний читает память выбранного процесса стандартными read-only Windows API по отдельно проверенному layout. Поставляется отдельный процесс-стенд; подтверждённых структур DBD 10.2.2 и подключения к игре нет. Demo и генератор JSON используют синтетические данные. Версия `10.2.2` в `offsets.json` остаётся меткой, реальные адреса равны `null` и не используются. Внешний JSON обозначается `LOCAL JSON (unverified producer)`: наличие файла не подтверждает происхождение данных из игры.
 
@@ -8,7 +8,7 @@ C++20, Windows x64, DirectX 11, DirectComposition, Dear ImGui, CMake. PR #1 и P
 
 В GitHub выберите ветку `feature/windows-live-memory-reader`, папку `downloads`, затем **Download raw file** для нужного ZIP:
 
-- `VisualESPOverlay-demo-win64.zip`: `VisualESPOverlay.exe`, консольный `frame_tool.exe`, `offsets.json`, `config.example.json`, `example.frame.json`, документация, отчёт исследования в docs/ и лицензии.
+- `VisualESPOverlay-demo-win64.zip`: `VisualESPOverlay.exe`, консольный `frame_tool.exe`, `offsets.json`, `config.example.json`, `example.frame.json`, `EspMemoryFixture.exe`, `fixture_layout_tool.exe`, соответствующий `memory.fixture.json`, документация, отчёт исследования в docs/ и лицензии.
 - `VisualESPOverlay-source.zip`: исходники, CMake, примеры и тесты без build-каталогов и вложенных архивов.
 
 Распакуйте Windows ZIP в доступную для записи папку и запустите `VisualESPOverlay.exe`. По умолчанию включён Demo. Меню открыто; **Insert** скрывает его и включает click-through. Настройки `config.json` и относительные пути источников/записей разрешаются рядом с exe, независимо от рабочего каталога. Образец `config.example.json` не перезаписывает существующие настройки: его можно скопировать в `config.json` или сохранить настройки кнопкой **Save**.
@@ -214,3 +214,9 @@ ctest --preset release
 В live-режиме FOV берётся из матрицы внешнего источника: ползунок Demo FOV не меняет камеру чужого процесса. Live reader не пишет в процесс. Прежние категории, цвета, стрелка/сектор, hotkeys, click-through, запись и Replay сохранены. Live не подставляет Demo даже при `fallback_demo=true`. Исчезнувшие ID отсутствуют в следующем полном снимке; invalid снимок очищает сцену, зависший sequence истекает по `stale_ms`, завершение процесса приводит к повторному поиску и открытию нового handle.
 
 Workflow **Windows memory pipeline** собирает MSVC x64 Release и запускает CTest, включая реальные OpenProcess/ReadProcessMemory, изменение координат/камеры, удаление, ошибки, stale и reconnect. Второй Windows-тест использует существующие Overlay и RenderEntities, захватывает backbuffer DX11 и проверяет цветные пиксели рамки в рассчитанной области. Артефакт содержит exe, layout, JSON-отчёты, BMP и журнал. Состояние фактического запуска указано в VALIDATION.md; наличие теста в репозитории само по себе не означает его успешного выполнения.
+
+
+Для запуска стенда с готовыми настройками скопируйте `examples/config.memory-fixture.json` в `config.json` рядом с exe. Это явно выбирает live_memory; источник данных — EspMemoryFixture.exe, а не DBD. Для переупаковки существующей Windows-сборки: `python tools/package_release.py build/windows` (либо каталог Release нативной сборки). Скрипт проверяет CRC и побайтовое содержимое обоих ZIP.
+
+
+Проверено на нативной Windows Server 2022/MSVC x64 Release: **14/14 CTest**, включая отдельный процесс, чтение через RPM, восстановление и реальные пиксели DX11. Linux Release: **12/12**. [CI и native Windows artifact](https://github.com/psenicynarsenij-ship-it/DBD-soft-project/actions/runs/39996145579), [подробные результаты](VALIDATION.md), [сохранённое свидетельство](docs/windows-memory-evidence.json). Подключение к DBD 10.2.2 этими тестами не подтверждается.
