@@ -16,6 +16,9 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh run download 39994497821 --name Windows-x64-Release-and-evidence --dir build/native-windows
+      - name: Inspect prior captured pixels
+        if: contains(github.event.head_commit.message, '[inspect]')
+        run: python tools/inspect_capture.py
       - name: Configure MSVC x64 Release
         if: ${{ !contains(github.event.head_commit.message, '[inspect]') }}
         run: cmake -S . -B build/native-windows -A x64 -DESP_BUILD_CONFIG_TESTS=ON -DESP_BUILD_RENDER_TESTS=ON -DESP_BUILD_TOOLS=ON
