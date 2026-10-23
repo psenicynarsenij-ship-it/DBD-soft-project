@@ -2,12 +2,14 @@
 #include <array>
 #include <filesystem>
 #include <string>
-#include "data_provider.hpp"
+#include "frame_sources.hpp"
 namespace esp {
 struct VisualConfig {
     bool enabled=true, survivors=true, killer=true, generators=true, hooks=true, exitGates=true;
     bool names=true, distances=true;
     float maxDistance=150;
+    int maxDrawEntities=1500;
+    RuntimeOptions runtime;
     std::array<float,4> survivorColor{0.2f,0.9f,1,1};
     std::array<float,4> killerColor{1,0.2f,0.25f,1};
     CameraSettings camera;

@@ -20,6 +20,10 @@ int main() {
         TemporaryDirectory temp;
         const auto configPath=temp.path/"config.json";
         esp::VisualConfig original;original.hooks=false;original.maxDistance=87;original.killerColor={0.1f,0.2f,0.3f,0.4f};
+        original.runtime.kind=esp::SourceKind::JsonFile;original.runtime.jsonPath="input.json";
+        original.runtime.replayPath="debug.jsonl";original.runtime.recordingPath="output.jsonl";
+        original.runtime.fallbackDemo=true;original.runtime.replayLoop=false;original.runtime.record=true;
+        original.runtime.pollMs=10;original.runtime.staleMs=500;original.maxDrawEntities=500;
         original.camera.verticalFovDegrees=110;
         original.killerDirection=false;original.killerCone=true;original.killerConeDegrees=100;
         original.killerArrowLength=12;original.killerArrowColor={0.3f,0.4f,0.5f};
@@ -32,17 +36,19 @@ int main() {
         Require(loaded.camera.verticalFovDegrees==110&&!loaded.killerDirection&&loaded.killerCone&&
                 loaded.killerConeDegrees==100&&loaded.killerArrowLength==12&&loaded.killerArrowColor==original.killerArrowColor&&
                 loaded.killerArrowOpacity==0.6f&&loaded.killerConeOpacity==0.2f,"all new settings round trip");
+        Require(loaded.runtime==original.runtime&&loaded.maxDrawEntities==500,"runtime source options round trip");
         original.maxDistance=99;
         Require(esp::SaveConfig(configPath,original,status),"overwrite existing config");
         Require(esp::LoadConfig(configPath,loaded,status)&&loaded.maxDistance==99,"load overwritten config");
         nlohmann::json saved;
         {std::ifstream in(configPath);in>>saved;}
-        auto legacy=saved;legacy.erase("camera");
+        auto legacy=saved;legacy.erase("camera");legacy.erase("runtime");legacy["visuals"].erase("max_draw_entities");
         for(const auto* field:{"killer_direction","killer_cone","killer_cone_degrees","killer_arrow_length","killer_arrow_color","killer_arrow_opacity","killer_cone_opacity"})
             legacy["visuals"].erase(field);
         {std::ofstream out(configPath);out<<legacy;}
         Require(esp::LoadConfig(configPath,loaded,status)&&loaded.camera.verticalFovDegrees==60&&loaded.killerDirection&&
                 !loaded.killerCone&&loaded.killerConeDegrees==90&&loaded.killerArrowLength==6,"legacy config uses new defaults");
+        Require(loaded.runtime==esp::RuntimeOptions{}&&loaded.maxDrawEntities==1500,"legacy runtime defaults");
         for(const auto* field:{"killer_cone_degrees","killer_arrow_length","killer_arrow_opacity","killer_cone_opacity"}) {
             auto invalid=saved;invalid["visuals"][field]=-1;
             {std::ofstream out(configPath);out<<invalid;}

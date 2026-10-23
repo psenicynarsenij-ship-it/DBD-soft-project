@@ -1,6 +1,6 @@
 #include <filesystem>
 #include "esp/overlay.hpp"
-#include "esp/demo_provider.hpp"
+#include "esp/runtime_provider.hpp"
 #include "esp/renderer.hpp"
 #include <array>
 #include <memory>
@@ -25,9 +25,17 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,PWSTR,int) {
         esp::LoadConfig(configPath,config,status);
         // Fail clearly if the data-source configuration is invalid or requests a real provider.
         if(!esp::ValidateOffsets(directory/L"offsets.json",offsetsStatus)) throw std::runtime_error(offsetsStatus);
-        std::unique_ptr<esp::IDataProvider> provider=std::make_unique<esp::DemoProvider>();
         esp::Overlay overlay;overlay.Initialize(instance);
-        bool menuOpen=true;overlay.SetInteractive(menuOpen);Keys keys;
+        std::unique_ptr<esp::RuntimeDataProvider> provider;
+        auto startSource=[&] {
+            auto source=esp::MakeFrameSource(config.runtime,directory);
+            if(provider) provider->Stop();
+            provider=std::make_unique<esp::RuntimeDataProvider>(std::move(source),config.runtime,
+                esp::ResolveDataPath(directory,config.runtime.recordingPath),
+                esp::ReadContext{overlay.Width()/overlay.Height(),config.camera,std::chrono::steady_clock::now()});
+        };
+        startSource();
+        bool menuOpen=true,restartSource=false;overlay.SetInteractive(menuOpen);Keys keys;
         while(overlay.Poll()) {
             if(keys.Pressed(VK_END)) break;
             if(keys.Pressed(VK_INSERT)) menuOpen=!menuOpen;
@@ -35,9 +43,15 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,PWSTR,int) {
             for(int i=0;i<8;++i) if(keys.Pressed(VK_F1+i)) *toggles[i]=!*toggles[i];
             overlay.SetInteractive(menuOpen);
             if(!overlay.BeginFrame()) continue;
-            const auto frame=provider->Sample(overlay.Width()/overlay.Height(),config.camera);
-            esp::RenderEntities(frame,config,overlay.Width(),overlay.Height());
-            if(menuOpen) esp::RenderMenu(config,menuOpen,configPath,status,offsetsStatus);
+            if(restartSource) {
+                restartSource=false;
+                try {startSource();status="Source settings applied";}
+                catch(const std::exception& e) {status=std::string("Source settings failed: ")+e.what();}
+            }
+            provider->SetContext(overlay.Width()/overlay.Height(),config.camera);
+            const auto snapshot=provider->Latest();
+            esp::RenderEntities(*snapshot->frame,config,overlay.Width(),overlay.Height(),snapshot->diagnostics);
+            if(menuOpen) esp::RenderMenu(config,menuOpen,configPath,status,offsetsStatus,restartSource);
             overlay.SetInteractive(menuOpen);overlay.EndFrame();
         }
         return 0;
