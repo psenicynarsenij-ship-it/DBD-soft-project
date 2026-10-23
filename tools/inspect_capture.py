@@ -3,7 +3,10 @@ import json
 import pathlib
 import struct
 
-path = pathlib.Path('build/native-windows/memory-before.bmp')
+paths = [pathlib.Path('build/native-windows') / name for name in ['memory-before.bmp','memory-after-move.bmp','memory-after-camera.bmp']]
+paths = [p for p in paths if p.exists()]
+path = paths[-1]
+print('::notice title=Captured stages::'+json.dumps([p.name for p in paths]))
 b = path.read_bytes()
 offset = struct.unpack_from('<I', b, 10)[0]
 w, height = struct.unpack_from('<ii', b, 18)
@@ -28,7 +31,7 @@ print('::notice title=Captured pixel diagnostics::'+json.dumps(report))
 # A small lossless crop, encoded in one check annotation for restricted log clients.
 import base64
 import zlib
-cx, cy = round(w*0.44375), round(h*0.5166666667)
+cx, cy = (min(x for x,y in points)+max(x for x,y in points))//2, round(h*0.5166666667)
 crop_w, crop_h = 64, 64
 raw = bytearray()
 for y in range(cy-32, cy+32):
