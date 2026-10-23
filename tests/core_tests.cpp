@@ -33,7 +33,29 @@ int main() {
         const auto turned=WorldToScreen(eye+Vec3{10,0,0},vp,1000,500);
         Require(turned&&Near(turned->x,500)&&Near(turned->y,250),"translated rotated camera");
         Require(Near(Length({3,0,4}),5),"meter distance");
-        DemoProvider demo;const auto frame=demo.Sample(16.0f/9.0f);
+        Require(Near(Radians(180),pi),"degree to radian conversion");
+        const auto forward=DirectionFromYaw(0),side=DirectionFromYaw(Radians(90));
+        Require(Near(forward.x,0)&&Near(forward.z,1),"zero yaw faces +Z");
+        Require(Near(side.x,1)&&Near(side.z,0),"positive yaw faces +X");
+        for(float angle:{-720.0f,-90.0f,0.0f,60.0f,120.0f,360.0f})
+            Require(Near(Length(DirectionFromYaw(Radians(angle))),1),"yaw direction normalized");
+        for(float angle:{30.0f,90.0f,120.0f}) {
+            const float half=Radians(angle)/2;
+            const auto left=RotateYaw(forward,-half),rightEdge=RotateYaw(forward,half);
+            Require(Near(Length(left),1)&&Near(Length(rightEdge),1),"cone boundary directions normalized");
+            Require(Near(Dot(left,rightEdge),std::cos(Radians(angle))),"cone full angle matches boundary dot product");
+            Require(Near(left.x,-rightEdge.x)&&Near(left.z,rightEdge.z),"cone symmetric about heading");
+            Require(Near(Length((Vec3{2,0,3}+rightEdge*6)-Vec3{2,0,3}),6),"cone radius and arrow world length");
+        }
+        const auto narrow=WorldToScreen({5,0,10},Perspective(Radians(60),2,1,100),1000,500);
+        const auto wide=WorldToScreen({5,0,10},Perspective(Radians(120),2,1,100),1000,500);
+        Require(narrow&&wide&&narrow->x>wide->x&&wide->x>500,"wider FOV reduces screen displacement");
+        for(float fov:{60.0f,90.0f,120.0f}) {
+            const auto projection=Perspective(Radians(fov),2,1,100);
+            const auto edge=WorldToScreen({0,10*std::tan(Radians(fov)/2),10},projection,1000,500);
+            Require(edge&&Near(edge->y,0),"vertical FOV boundary maps to viewport top");
+        }
+        DemoProvider demo;const auto frame=demo.SampleAt(16.0f/9.0f,CameraSettings{},0);
         Require(frame.source.find("DEMO")!=std::string::npos,"demo source labeled");
         Require(frame.entities.size()==11,"demo entity count");
         std::set<EntityKind> kinds;std::set<std::uint64_t> ids;
@@ -42,9 +64,22 @@ int main() {
             Require(WorldToScreen(e.position,frame.camera.viewProjection,1920,1080).has_value(),"demo entity projects");
             if(e.kind==EntityKind::Survivor||e.kind==EntityKind::Killer)
                 Require(e.top.y>e.position.y,"character top above feet");
+            Require(e.lookDirection.has_value()==(e.kind==EntityKind::Killer),"only demo killer has optional direction");
         }
         Require(kinds.size()==5&&ids.size()==frame.entities.size(),"all categories and unique IDs");
-        std::cout<<"PASS: projection, clipping, camera transforms, distances, demo snapshot and all five categories\n";
+        const auto before=demo.SampleAt(16.0f/9.0f,CameraSettings{},2);
+        const auto after=demo.SampleAt(16.0f/9.0f,CameraSettings{},2.01f);
+        const auto a=*before.entities.at(4).lookDirection,b=*after.entities.at(4).lookDirection;
+        Require(Near(Length(a),1)&&Near(Length(b),1)&&Dot(a,b)>0.9999f&&Length(a-b)>0,"smooth nonzero killer yaw change");
+        const auto wideFrame=demo.SampleAt(16.0f/9.0f,CameraSettings{120},0);
+        Require(wideFrame.camera.viewProjection.m!=frame.camera.viewProjection.m,"camera FOV reaches provider matrix");
+        Require(Near(wideFrame.camera.position.x,frame.camera.position.x),"FOV does not move camera");
+        for(float invalid:{59.0f,121.0f,std::numeric_limits<float>::quiet_NaN()}) {
+            bool threw=false;
+            try {demo.SampleAt(1,CameraSettings{invalid},0);} catch(const std::invalid_argument&) {threw=true;}
+            Require(threw,"invalid camera FOV rejected by demo provider");
+        }
+        std::cout<<"PASS: projection, clipping, FOV bounds, cone angles, normalized directions, smooth demo yaw and all five categories\n";
         return EXIT_SUCCESS;
     } catch(const std::exception& e) {std::cerr<<"FAIL: "<<e.what()<<'\n';return EXIT_FAILURE;}
 }

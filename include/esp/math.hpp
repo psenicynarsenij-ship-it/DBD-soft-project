@@ -2,6 +2,7 @@
 #include <array>
 #include <cmath>
 #include <optional>
+#include <numbers>
 
 namespace esp {
 struct Vec2 { float x{}, y{}; };
@@ -13,6 +14,13 @@ inline float Dot(Vec3 a, Vec3 b) { return a.x*b.x+a.y*b.y+a.z*b.z; }
 inline float Length(Vec3 a) { return std::sqrt(Dot(a,a)); }
 inline Vec3 Normalize(Vec3 a) { const float n=Length(a); return n>0 ? a*(1.0f/n) : Vec3{}; }
 inline Vec3 Cross(Vec3 a, Vec3 b) { return {a.y*b.z-a.z*b.y,a.z*b.x-a.x*b.z,a.x*b.y-a.y*b.x}; }
+inline float Radians(float degrees) { return degrees*std::numbers::pi_v<float>/180.0f; }
+// Yaw zero faces +Z. Positive yaw turns toward +X about the +Y axis.
+inline Vec3 DirectionFromYaw(float radians) { return {std::sin(radians),0,std::cos(radians)}; }
+inline Vec3 RotateYaw(Vec3 direction, float radians) {
+    const float s=std::sin(radians),c=std::cos(radians);
+    return {direction.x*c+direction.z*s,direction.y,-direction.x*s+direction.z*c};
+}
 // Row-major storage, column vectors, left-handed coordinates, +Y up, +Z forward.
 struct Matrix4 { std::array<float,16> m{}; };
 inline Matrix4 Multiply(const Matrix4& a, const Matrix4& b) {

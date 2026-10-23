@@ -6,9 +6,18 @@
 namespace esp {
 using nlohmann::json;
 static void Validate(const VisualConfig& c) {
+    auto range=[](float value,float low,float high,const char* message) {
+        if(!std::isfinite(value)||value<low||value>high) throw std::runtime_error(message);
+    };
     if(!std::isfinite(c.maxDistance)||c.maxDistance<1||c.maxDistance>1000) throw std::runtime_error("max_distance must be 1..1000");
     for(const auto& color:{c.survivorColor,c.killerColor}) for(float v:color)
         if(!std::isfinite(v)||v<0||v>1) throw std::runtime_error("color channels must be 0..1");
+    range(c.camera.verticalFovDegrees,CameraSettings::MinFovDegrees,CameraSettings::MaxFovDegrees,"camera FOV must be 60..120 degrees");
+    range(c.killerConeDegrees,30,120,"killer cone angle must be 30..120 degrees");
+    range(c.killerArrowLength,1,20,"killer arrow length must be 1..20 meters");
+    range(c.killerArrowOpacity,0,1,"killer arrow opacity must be 0..1");
+    range(c.killerConeOpacity,0,1,"killer cone opacity must be 0..1");
+    for(float v:c.killerArrowColor) range(v,0,1,"killer arrow color channels must be 0..1");
 }
 bool LoadConfig(const std::filesystem::path& path,VisualConfig& c,std::string& status) {
     try {
@@ -23,17 +32,30 @@ bool LoadConfig(const std::filesystem::path& path,VisualConfig& c,std::string& s
         next.names=v.at("names"); next.distances=v.at("distances"); next.maxDistance=v.at("max_distance");
         next.survivorColor=v.at("survivor_color").get<std::array<float,4>>();
         next.killerColor=v.at("killer_color").get<std::array<float,4>>();
+        // Existing schema-1 configs remain valid; absent new fields use defaults.
+        if(j.contains("camera")) next.camera.verticalFovDegrees=j.at("camera").value("vertical_fov_degrees",next.camera.verticalFovDegrees);
+        next.killerDirection=v.value("killer_direction",next.killerDirection);
+        next.killerCone=v.value("killer_cone",next.killerCone);
+        next.killerConeDegrees=v.value("killer_cone_degrees",next.killerConeDegrees);
+        next.killerArrowLength=v.value("killer_arrow_length",next.killerArrowLength);
+        next.killerArrowColor=v.value("killer_arrow_color",next.killerArrowColor);
+        next.killerArrowOpacity=v.value("killer_arrow_opacity",next.killerArrowOpacity);
+        next.killerConeOpacity=v.value("killer_cone_opacity",next.killerConeOpacity);
         Validate(next); c=next; status="Loaded config.json";return true;
     } catch(const std::exception& e) { status=std::string("Load failed: ")+e.what();return false; }
 }
 bool SaveConfig(const std::filesystem::path& path,const VisualConfig& c,std::string& status) {
     try {
         Validate(c);
-        const json j={{"schema_version",1},{"visuals",{
+        const json j={{"schema_version",1},{"camera",{{"vertical_fov_degrees",c.camera.verticalFovDegrees}}},{"visuals",{
             {"enabled",c.enabled},{"survivors",c.survivors},{"killer",c.killer},
             {"generators",c.generators},{"hooks",c.hooks},{"exit_gates",c.exitGates},
             {"names",c.names},{"distances",c.distances},{"max_distance",c.maxDistance},
-            {"survivor_color",c.survivorColor},{"killer_color",c.killerColor}}}};
+            {"survivor_color",c.survivorColor},{"killer_color",c.killerColor},
+            {"killer_direction",c.killerDirection},{"killer_cone",c.killerCone},
+            {"killer_cone_degrees",c.killerConeDegrees},{"killer_arrow_length",c.killerArrowLength},
+            {"killer_arrow_color",c.killerArrowColor},{"killer_arrow_opacity",c.killerArrowOpacity},
+            {"killer_cone_opacity",c.killerConeOpacity}}}};
         auto temporary=path; temporary+=".tmp";
         {std::ofstream out(temporary,std::ios::trunc);out.exceptions(std::ios::failbit|std::ios::badbit);out<<j.dump(2)<<'\n';out.close();}
         // Copy-over preserves the old file until a complete temporary file exists.

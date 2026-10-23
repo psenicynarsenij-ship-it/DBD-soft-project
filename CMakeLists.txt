@@ -1,9 +1,11 @@
 cmake_minimum_required(VERSION 3.24)
-project(VisualESPOverlay VERSION 0.1.0 LANGUAGES CXX)
+project(VisualESPOverlay VERSION 0.2.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+option(ESP_BUILD_OVERLAY "Build the Windows DirectX 11 application" ${WIN32})
+option(ESP_BUILD_CONFIG_TESTS "Build JSON persistence tests (requires JSON dependency)" ${ESP_BUILD_OVERLAY})
 include(CTest)
 if(BUILD_TESTING)
   add_executable(core_tests tests/core_tests.cpp src/demo_provider.cpp)
@@ -11,7 +13,20 @@ if(BUILD_TESTING)
   add_test(NAME core_tests COMMAND core_tests)
 endif()
 
-option(ESP_BUILD_OVERLAY "Build the Windows DirectX 11 application" ${WIN32})
+if(ESP_BUILD_OVERLAY OR (BUILD_TESTING AND ESP_BUILD_CONFIG_TESTS))
+  include(FetchContent)
+  FetchContent_Declare(json
+    GIT_REPOSITORY https://github.com/nlohmann/json.git
+    GIT_TAG 9cca280a4d0ccf0c08f47a99aa71d1b0e52f8d03)
+  FetchContent_MakeAvailable(json)
+  if(BUILD_TESTING AND ESP_BUILD_CONFIG_TESTS)
+    add_executable(config_tests tests/config_tests.cpp src/config.cpp)
+    target_include_directories(config_tests PRIVATE include)
+    target_link_libraries(config_tests PRIVATE nlohmann_json::nlohmann_json)
+    add_test(NAME config_tests COMMAND config_tests)
+  endif()
+endif()
+
 if(ESP_BUILD_OVERLAY)
   if(NOT WIN32 OR NOT CMAKE_SIZEOF_VOID_P EQUAL 8)
     message(FATAL_ERROR "The overlay requires Windows x64. Portable tests: -DESP_BUILD_OVERLAY=OFF")
@@ -21,16 +36,7 @@ if(ESP_BUILD_OVERLAY)
   FetchContent_Declare(imgui
     GIT_REPOSITORY https://github.com/ocornut/imgui.git
     GIT_TAG f5befd2d29e66809cd1110a152e375a7f1981f06)
-  FetchContent_Declare(json
-    GIT_REPOSITORY https://github.com/nlohmann/json.git
-    GIT_TAG 9cca280a4d0ccf0c08f47a99aa71d1b0e52f8d03)
-  FetchContent_MakeAvailable(imgui json)
-  if(BUILD_TESTING)
-    add_executable(config_tests tests/config_tests.cpp src/config.cpp)
-    target_include_directories(config_tests PRIVATE include)
-    target_link_libraries(config_tests PRIVATE nlohmann_json::nlohmann_json)
-    add_test(NAME config_tests COMMAND config_tests)
-  endif()
+  FetchContent_MakeAvailable(imgui)
   add_library(imgui_backend STATIC
     ${imgui_SOURCE_DIR}/imgui.cpp
     ${imgui_SOURCE_DIR}/imgui_draw.cpp
