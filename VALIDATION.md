@@ -1,3 +1,9 @@
+# Этап 3.0: проверка совместимости
+
+Изменения этапа ограничены отчётом, evidence JSON и ссылками документации. Runtime, reader, decoder, UI/renderer, CMake и тесты побайтово сохранены от `acc419f`. Актуальные результаты текущей проверки приведены в docs/dbd-3-compatibility.json; подробный разбор — docs/DBD_10_2_2_COMPATIBILITY.md. Предыдущие native Windows 14/14 ниже не являются проверкой DBD. Текущий единственный прогон portable CTest: **12/12 PASS**; ancestry PR #3/#4 и origin/work, неизменность исходников и parse evidence JSON проверены. Windows-сборка не повторялась: код и build inputs не изменились.
+
+---
+
 # Проверки версии 0.4 — внешний read-only источник
 
 База: `9049b3d` из PR #3. Ветка: `feature/windows-live-memory-reader`.

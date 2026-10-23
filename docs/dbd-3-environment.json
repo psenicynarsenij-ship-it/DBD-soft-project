@@ -1,0 +1,58 @@
+{
+  "observed_at_utc": "2026-10-23T17:46:57.572727+00:00",
+  "host_os": "Linux",
+  "host_machine": "x86_64",
+  "searched_roots": [
+    {
+      "path": "/workspace",
+      "exists": true
+    },
+    {
+      "path": "/opt",
+      "exists": true
+    },
+    {
+      "path": "/mnt",
+      "exists": true
+    },
+    {
+      "path": "/media",
+      "exists": true
+    },
+    {
+      "path": "/home/agent/.steam",
+      "exists": false
+    },
+    {
+      "path": "/home/agent/.local/share/Steam",
+      "exists": false
+    },
+    {
+      "path": "/home/agent/.local/share/DeadByDaylight",
+      "exists": false
+    },
+    {
+      "path": "/home/agent/.wine/drive_c/Program Files (x86)/Steam",
+      "exists": false
+    }
+  ],
+  "exclusions": [
+    ".git",
+    "_deps",
+    ".tools",
+    "node_modules",
+    "__pycache__"
+  ],
+  "matches": [],
+  "scan_errors": [
+    {
+      "path": "/opt/containerd",
+      "error": "[Errno 13] Permission denied: '/opt/containerd'"
+    }
+  ],
+  "matching_process_names": [],
+  "unreadable_process_entries": 0,
+  "windows_process_access_attempted": false,
+  "game_files_modified": false,
+  "scope": "Accessible container roots and current Linux PID namespace only; not the user Windows computer or other hosts."
+}
