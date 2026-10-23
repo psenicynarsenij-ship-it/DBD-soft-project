@@ -1,0 +1,203 @@
+{
+  "stage": "3.0 compatibility assessment",
+  "target_version_label": "10.2.2",
+  "base_commit": "acc419f648d47b6a6ce59fa67f715e1e41605bd9",
+  "working_branch": "feature/dbd-10-2-2-compatibility",
+  "repository": "https://github.com/psenicynarsenij-ship-it/DBD-soft-project",
+  "pull_requests": [
+    {
+      "baseRefName": "work",
+      "headRefName": "feature/dbd-supported-source-assessment",
+      "headRefOid": "9049b3d10594ef86444e0781610857d7c7c8458f",
+      "mergedAt": null,
+      "number": 3,
+      "state": "OPEN",
+      "url": "https://github.com/psenicynarsenij-ship-it/DBD-soft-project/pull/3"
+    },
+    {
+      "baseRefName": "feature/dbd-supported-source-assessment",
+      "headRefName": "feature/windows-live-memory-reader",
+      "headRefOid": "acc419f648d47b6a6ce59fa67f715e1e41605bd9",
+      "mergedAt": null,
+      "number": 4,
+      "state": "OPEN",
+      "url": "https://github.com/psenicynarsenij-ship-it/DBD-soft-project/pull/4"
+    }
+  ],
+  "ancestry_preserved": [
+    "origin/work",
+    "9049b3d10594ef86444e0781610857d7c7c8458f",
+    "acc419f648d47b6a6ce59fa67f715e1e41605bd9"
+  ],
+  "game_observations": {
+    "installation_discovered": false,
+    "product_version": null,
+    "executable": null,
+    "architecture": null,
+    "modules": null,
+    "launch_mode": null,
+    "process_id": null,
+    "OpenProcess_attempted": false,
+    "Win32_access_error": null,
+    "anti_cheat_observed": false,
+    "spatial_samples_observed": 0,
+    "protection_status": "not_observed"
+  },
+  "integration": {
+    "source_found": false,
+    "implemented": false,
+    "connected_to_dbd": false,
+    "reason": "No target installation/process, verified spatial contract, samples or DBD memory layout available in this environment."
+  },
+  "field_mapping": [
+    {
+      "field": "build_identity",
+      "required_contract": "verified_build + executable/module + image_size/pe_timestamp/machine",
+      "dbd_status": "not_observed",
+      "confirmed_dbd_value": null
+    },
+    {
+      "field": "root_and_ownership",
+      "required_contract": "root_export OR root_rva, pointer_chain, readable ranges",
+      "dbd_status": "not_observed",
+      "confirmed_dbd_value": null
+    },
+    {
+      "field": "snapshot_coherence",
+      "required_contract": "magic/version + aligned uint64 revision, full snapshot",
+      "dbd_status": "not_observed",
+      "confirmed_dbd_value": null
+    },
+    {
+      "field": "sequence_and_time",
+      "required_contract": "uint64 sequence and timestamp_us",
+      "dbd_status": "not_observed",
+      "confirmed_dbd_value": null
+    },
+    {
+      "field": "object_count_and_array",
+      "required_contract": "uint32 count + contiguous fixed-stride records",
+      "dbd_status": "not_observed",
+      "confirmed_dbd_value": null
+    },
+    {
+      "field": "object_id",
+      "required_contract": "unique nonzero uint64 id",
+      "dbd_status": "not_observed",
+      "confirmed_dbd_value": null
+    },
+    {
+      "field": "object_category",
+      "required_contract": "uint32 kind + five explicit mappings",
+      "dbd_status": "not_observed",
+      "confirmed_dbd_value": null
+    },
+    {
+      "field": "object_name",
+      "required_contract": "NUL-terminated fixed-size UTF-8",
+      "dbd_status": "not_observed",
+      "confirmed_dbd_value": null
+    },
+    {
+      "field": "survivor_positions",
+      "required_contract": "finite float32 position/top, same coordinate basis",
+      "dbd_status": "not_observed",
+      "confirmed_dbd_value": null
+    },
+    {
+      "field": "killer_position",
+      "required_contract": "finite float32 position/top",
+      "dbd_status": "not_observed",
+      "confirmed_dbd_value": null
+    },
+    {
+      "field": "generator_positions",
+      "required_contract": "finite float32 position",
+      "dbd_status": "not_observed",
+      "confirmed_dbd_value": null
+    },
+    {
+      "field": "hook_positions",
+      "required_contract": "finite float32 position",
+      "dbd_status": "not_observed",
+      "confirmed_dbd_value": null
+    },
+    {
+      "field": "exit_gate_positions",
+      "required_contract": "finite float32 position",
+      "dbd_status": "not_observed",
+      "confirmed_dbd_value": null
+    },
+    {
+      "field": "killer_look_direction",
+      "required_contract": "optional normalized Vec3 in Frame; layout requires direction/flags slots",
+      "dbd_status": "not_observed",
+      "confirmed_dbd_value": null
+    },
+    {
+      "field": "camera_position",
+      "required_contract": "float32 Vec3 in header",
+      "dbd_status": "not_observed",
+      "confirmed_dbd_value": null
+    },
+    {
+      "field": "camera_view_projection",
+      "required_contract": "16 float32, row-major times column vector, LH +Y up, z 0..w",
+      "dbd_status": "not_observed",
+      "confirmed_dbd_value": null
+    },
+    {
+      "field": "coordinate_metadata",
+      "required_contract": "units, handedness, axes, viewport/aspect, matrix convention",
+      "dbd_status": "not_observed",
+      "confirmed_dbd_value": null
+    }
+  ],
+  "observed_architecture_constraints": [
+    "Decoder reads a header and a contiguous array of fixed-stride records, not arbitrary object graphs.",
+    "Decoder requires producer-owned magic/version and even/unchanged aligned revision; arbitrary RPM success does not establish coherence.",
+    "Camera and matrix must be inline header float32 values; names fixed UTF-8 and direction/flags slots physically present.",
+    "LiveFrameSource resolves root/pointer_chain on attachment, not on every snapshot; a relocated root with retained readable old storage needs a verified lifecycle strategy."
+  ],
+  "runtime_files_sha256_unchanged_from_base": {
+    "src/process_reader.cpp": "c2f0717f07c80dc8941de799af8253954e2a5e5c9c1e6513130d813cd8e6f7e3",
+    "src/game_state_decoder.cpp": "809ceb9cc0d3ad9bd4c8ef48592a6e2237190943746eb99b727d684f5d13cb38",
+    "src/runtime_provider.cpp": "6556618d9915c81046bd048976e782881b4410f8fa1e25e6ec848b8ded014e6e",
+    "src/renderer.cpp": "c66b7f600a43901764dcfb8c065f9c1d712834e5ab5c49f04e8507cd7ab44303",
+    "src/overlay.cpp": "d9e81ae4453809c671297c2469ad9313b81ab4feb9fb5cb3bcd635ed0fd95725",
+    "src/config.cpp": "c836fafb0d671b897f07f0ce055110ffe02b6820ae1b3a70e365199455544bc1",
+    "src/frame_sources.cpp": "ef8455d95d73883056707ff2e984a44085d391e7fd3bba8df6cc8611e05ba586",
+    "include/esp/game_state_decoder.hpp": "b48b856c16e8ccfba132a341fd23db8a405b15660ad5f1bc9189f5d52884cdb9"
+  },
+  "prior_native_validation": {
+    "commit": "09cde436d802480a1cd4df3fe91aa698feecb54c",
+    "url": "https://github.com/psenicynarsenij-ship-it/DBD-soft-project/actions/runs/39996145579",
+    "tests_passed": 14,
+    "proves": "controlled fixture and renderer, not DBD compatibility"
+  },
+  "current_stage_checks": {
+    "portable_ctest": {
+      "passed": 12,
+      "failed": 0,
+      "executed_once": true,
+      "platform": "Linux x86_64, existing Release build"
+    },
+    "application_source_unchanged_from_base": true,
+    "unchanged_areas": [
+      "src",
+      "include",
+      "tests",
+      "tools",
+      "CMakeLists.txt",
+      "CMakePresets.json",
+      "config.example.json",
+      "offsets.json",
+      ".github"
+    ],
+    "ancestry_checks_passed": true,
+    "json_evidence_parsed": true,
+    "windows_game_probe_executed": false,
+    "native_windows_build_repeated": false,
+    "reason_native_not_repeated": "Documentation/evidence only; runtime and build inputs unchanged; prior native CI success confirmed."
+  }
+}

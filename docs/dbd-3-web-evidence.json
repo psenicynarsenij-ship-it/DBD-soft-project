@@ -1,0 +1,74 @@
+{
+  "requests": [
+    {
+      "url": "https://deadbydaylight.com/news/",
+      "observed_at_utc": "2026-10-23T17:47:01.559581+00:00",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "origin_content_read": false
+    },
+    {
+      "url": "https://support.deadbydaylight.com/hc/en-us/search?query=logs",
+      "observed_at_utc": "2026-10-23T17:47:01.562306+00:00",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "origin_content_read": false
+    },
+    {
+      "url": "https://dev.overwolf.com/ow-native/live-game-data-gep/supported-games/",
+      "observed_at_utc": "2026-10-23T17:47:01.563699+00:00",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "origin_content_read": false
+    },
+    {
+      "url": "https://game-events-status.overwolf.com/all_prod.json",
+      "observed_at_utc": "2026-10-23T17:47:01.564642+00:00",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "origin_content_read": false
+    },
+    {
+      "url": "https://partner.steamgames.com/doc/webapi/ISteamUserStats",
+      "observed_at_utc": "2026-10-23T17:47:01.565980+00:00",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "origin_content_read": false
+    },
+    {
+      "url": "https://store.steampowered.com/api/appdetails?appids=381210",
+      "observed_at_utc": "2026-10-23T17:47:01.566784+00:00",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "origin_content_read": false
+    },
+    {
+      "url": "https://dev.epicgames.com/docs/game-services/anti-cheat",
+      "observed_at_utc": "2026-10-23T17:47:01.568104+00:00",
+      "error": "<urlopen error Tunnel connection failed: 403 Forbidden>",
+      "origin_content_read": false
+    }
+  ],
+  "reviewed_materials": [
+    {
+      "id": "steam_sdk_mirror",
+      "url": "https://github.com/rlabrecque/SteamworksSDK/blob/df2baabf574a738ef1ea90a7e89339107fc0a279/public/steam/isteamuserstats.h",
+      "sha256": "755541356cd1871765da35c5f97c38d026fb2451ac4e7cf9d991833635404301",
+      "lines": [
+        99,
+        102,
+        160,
+        162,
+        166,
+        169
+      ],
+      "finding": "Named statistics and achievements; no documented DBD actor/camera schema. This is a mirror, not a live API response."
+    },
+    {
+      "id": "overwolf_archive",
+      "repository": "overwolf/overwolf.github.io",
+      "archived": true,
+      "default_branch": "source",
+      "commit": "67f2ffad3045b980a3201ec5547fd911d541feaa",
+      "date": "2024-09-01",
+      "tree_truncated": false,
+      "tree_entries": 1902,
+      "dbd_named_paths": [],
+      "finding": "Still the archived 2024 snapshot; current catalog inaccessible. No conclusion about current partner support."
+    }
+  ]
+}
