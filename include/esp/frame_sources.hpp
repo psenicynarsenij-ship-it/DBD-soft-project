@@ -4,10 +4,11 @@
 #include <memory>
 
 namespace esp {
-enum class SourceKind { Demo, JsonFile, Replay };
+enum class SourceKind { Demo, JsonFile, Replay, LiveMemory };
 struct RuntimeOptions {
     SourceKind kind=SourceKind::Demo;
     std::string jsonPath="frames.json", replayPath="recording.jsonl", recordingPath="capture.jsonl";
+    std::string memoryLayoutPath="memory.fixture.json";
     bool fallbackDemo=false, replayLoop=true, record=false;
     int pollMs=16, staleMs=1000;
     bool operator==(const RuntimeOptions&) const = default;
@@ -51,6 +52,7 @@ public:
 class ReplaySource final : public IFrameSource {
     std::filesystem::path path_;
     bool loop_{};
+    std::uintmax_t size_{};
     std::ifstream in_;
     std::optional<RecordedFrame> pending_;
     std::optional<std::filesystem::file_time_type> modified_;

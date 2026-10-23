@@ -20,7 +20,7 @@ int main() {
         TemporaryDirectory temp;
         const auto configPath=temp.path/"config.json";
         esp::VisualConfig original;original.hooks=false;original.maxDistance=87;original.killerColor={0.1f,0.2f,0.3f,0.4f};
-        original.runtime.kind=esp::SourceKind::JsonFile;original.runtime.jsonPath="input.json";
+        original.runtime.kind=esp::SourceKind::LiveMemory;original.runtime.memoryLayoutPath="verified-fixture.json";original.runtime.jsonPath="input.json";
         original.runtime.replayPath="debug.jsonl";original.runtime.recordingPath="output.jsonl";
         original.runtime.fallbackDemo=true;original.runtime.replayLoop=false;original.runtime.record=true;
         original.runtime.pollMs=10;original.runtime.staleMs=500;original.maxDrawEntities=500;

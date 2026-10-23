@@ -47,6 +47,7 @@
     "replay_loop": true,
     "record": false,
     "poll_ms": 16,
-    "stale_ms": 1000
+    "stale_ms": 1000,
+    "memory_layout_path": "memory.fixture.json"
   }
 }

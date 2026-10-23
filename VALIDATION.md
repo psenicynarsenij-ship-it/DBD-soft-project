@@ -1,3 +1,43 @@
+# Проверки версии 0.4 — внешний read-only источник
+
+База: `9049b3d` из PR #3. Ветка: `feature/windows-live-memory-reader`.
+Проверенный код: `09cde436d802480a1cd4df3fe91aa698feecb54c`.
+
+| Проверка | Фактический результат |
+|---|---|
+| GCC Release, Linux CTest | **PASS: 12/12** |
+| MSVC x64 Release, native Windows Server 2022 CTest | **PASS: 14/14** |
+| Windows x64 MinGW Release | Overlay, tools, fixture и Windows tests собраны и слинкованы |
+| ProcessReader → Decoder → Runtime | **PASS**, настоящие OpenProcess / ReadProcessMemory отдельного EspMemoryFixture.exe |
+| Перемещение в памяти | x = **−6 → −1**, прочитано извне; без DemoProvider в Live |
+| Камера | Реальная матрица стенда прочитана, поворот обнаружен и проверен renderer |
+| Existing Overlay / DX11 | **PASS**, пять категорий и цветные пиксели survivor box в backbuffer |
+| Три графические стадии | memory-before.bmp, memory-after-move.bmp, memory-after-camera.bmp; после стабилизации ImGui HUD |
+| Partial read / bounds | **PASS**, 8/16 байт перед PAGE_NOACCESS; Win32=998; переполнение адреса отклонено |
+| Module identity | Фактический PE fingerprint принят, несовпадающий image_size отклонён |
+| Жизненный цикл | ID исчезает, invalid matrix/count очищает кадр, sequence freeze истекает, resume и новый PID восстанавливаются |
+| Demo substitution | Live остаётся без Demo даже при fallback_demo=true |
+| Старые функции | Все прежние математика/FOV, config, сериализация, concurrency, JSON recovery, запись/Replay и CPU renderer tests прошли на Windows |
+| DBD 10.2.2 | **Не проверен**: настоящая игра не запущена, подтверждённого layout нет; NOT CONNECTED |
+
+[Успешный Windows CI и скачиваемый native MSVC artifact](https://github.com/psenicynarsenij-ship-it/DBD-soft-project/actions/runs/39996145579).
+[Сохранённые JSON-результаты](docs/windows-memory-evidence.json) содержат реальные PID, module/root addresses и отдельные отчёты memory/graphics. В graphics-прогоне: PID 2940 → 1204 после restart; dx11_pixels_verified=true. В memory-прогоне: PID 5984 → 4276.
+
+GitHub artifact `Windows-x64-Release-and-evidence` содержит нативные MSVC exe, соответствующий memory.fixture.json, BMP, JSON и LastTest.log. Скачивание его Azure-backed содержимого из локальной среды блокируется прокси; результаты прочитаны через check annotations. Это не помешало выполнению native Windows тестов.
+
+ZIP в downloads содержит отдельно собранные MinGW exe с соответствующим PE layout; MSVC artifact доступен по CI-ссылке. Код runtime одинаковый. Запуск именно MinGW exe в Windows CI не выполнялся. CRC архивов и побайтовое соответствие вложенным исходникам/exe проверяет tools/package_release.py.
+
+При Windows проверке обнаружено прежнее ошибочное распознавание дописывания Replay по одному mtime. Добавлена проверка размера и регрессионный тест с принудительно одинаковым timestamp. Поведение Replay сохранено: изменившаяся запись переоткрывается с начала.
+
+Графический тест проверяет настоящий DX11 render target и успешный Present, а не desktop screenshot или человеческую оценку изображения. Ручной click-through, ввод hotkeys и изменение разрешения монитора автоматически не проверялись; их код сохранён. В тесте добавлен прогрев четырёх кадров, поскольку первоначальный auto-fit HUD мог закрыть геометрию второго кадра. Renderer и интерфейс ради теста не изменялись.
+
+Исследование источников из PR #3 оставлено без изменений. Отказа OpenProcess для DBD не наблюдали: игру не запускали, поэтому конкретную ошибку доступа к ней заявлять нельзя. Требуемые подтверждённые поля и контракт описаны в docs/LIVE_MEMORY.md.
+
+---
+
+## Исторические результаты предыдущей версии
+
+
 # Проверки версии 0.3.1
 
 Основа — слитый PR #2, merge-коммит b6db33aa74435f8bec5aacab7d96dcca2b832f06. Текущая ветка: feature/dbd-supported-source-assessment. Исходные функции версии 0.3 сохранены.

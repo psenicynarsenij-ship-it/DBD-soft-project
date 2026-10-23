@@ -161,10 +161,11 @@ void RenderMenu(VisualConfig& c,bool& open,const std::filesystem::path& path,std
             if(ImGui::BeginTabItem("CONFIG")) {
                 ImGui::TextWrapped("Sources: demo, local JSON or recording replay. No game process is accessed.");
                 int mode=static_cast<int>(c.runtime.kind);
-                if(ImGui::Combo("Source",&mode,"Demo\0Local JSON\0Replay\0")) c.runtime.kind=static_cast<SourceKind>(mode);
+                if(ImGui::Combo("Source",&mode,"Demo\0Local JSON\0Replay\0Live memory (Windows x64)\0")) c.runtime.kind=static_cast<SourceKind>(mode);
                 if(c.runtime.kind==SourceKind::JsonFile) EditPath("JSON frame file",c.runtime.jsonPath);
                 if(c.runtime.kind==SourceKind::Replay) {EditPath("Replay file",c.runtime.replayPath);ImGui::Checkbox("Loop replay",&c.runtime.replayLoop);}
-                ImGui::Checkbox("Use labelled demo when source is lost",&c.runtime.fallbackDemo);
+                if(c.runtime.kind==SourceKind::LiveMemory) {EditPath("Verified memory layout",c.runtime.memoryLayoutPath);ImGui::TextUnformatted("Live memory never falls back to Demo. DBD connection unverified.");}
+                else ImGui::Checkbox("Use labelled demo when source is lost",&c.runtime.fallbackDemo);
                 ImGui::Checkbox("Record frames",&c.runtime.record);
                 if(c.runtime.record) EditPath("Recording output",c.runtime.recordingPath);
                 ImGui::SliderInt("Poll interval (ms)",&c.runtime.pollMs,5,1000,"%d",ImGuiSliderFlags_AlwaysClamp);

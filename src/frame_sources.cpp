@@ -1,17 +1,18 @@
 #include "esp/frame_sources.hpp"
+#include "esp/game_state_decoder.hpp"
 #include <array>
 #include <cmath>
 #include <stdexcept>
 
 namespace esp {
 const char* SourceKindName(SourceKind kind) {
-    switch(kind) {case SourceKind::Demo:return "DEMO";case SourceKind::JsonFile:return "LOCAL JSON (unverified producer)";case SourceKind::Replay:return "REPLAY";}
+    switch(kind) {case SourceKind::Demo:return "DEMO";case SourceKind::JsonFile:return "LOCAL JSON (unverified producer)";case SourceKind::Replay:return "REPLAY";case SourceKind::LiveMemory:return "LIVE MEMORY (DBD unverified)";}
     return "UNKNOWN";
 }
 void ValidateRuntimeOptions(const RuntimeOptions& o) {
-    if(o.kind!=SourceKind::Demo&&o.kind!=SourceKind::JsonFile&&o.kind!=SourceKind::Replay) throw std::runtime_error("unknown source kind");
+    if(o.kind!=SourceKind::Demo&&o.kind!=SourceKind::JsonFile&&o.kind!=SourceKind::Replay&&o.kind!=SourceKind::LiveMemory) throw std::runtime_error("unknown source kind");
     if(o.pollMs<5||o.pollMs>1000||o.staleMs<100||o.staleMs>30000) throw std::runtime_error("poll must be 5..1000 ms; stale timeout 100..30000 ms");
-    for(const auto* p:{&o.jsonPath,&o.replayPath,&o.recordingPath})
+    for(const auto* p:{&o.jsonPath,&o.replayPath,&o.recordingPath,&o.memoryLayoutPath})
         if(p->empty()||p->size()>1023||p->find('\0')!=std::string::npos) throw std::runtime_error("data paths must contain 1..1023 UTF-8 bytes without NUL");
 }
 std::filesystem::path ResolveDataPath(const std::filesystem::path& base,const std::string& value) {
@@ -61,15 +62,16 @@ bool ReadLine(std::ifstream& in,std::string& text) {
 }
 }
 void ReplaySource::Reset() {
-    in_.close();in_.clear();pending_.reset();modified_.reset();session_.clear();ended_=false;previousElapsed_=firstElapsed_=0;
+    in_.close();in_.clear();pending_.reset();modified_.reset();session_.clear();ended_=false;size_=0;previousElapsed_=firstElapsed_=0;
 }
 SourceRead ReplaySource::Poll(const ReadContext& c) {
     try {
         if(!std::filesystem::is_regular_file(path_)) {Reset();return {ReadState::Disconnected,{},"replay file is missing"};}
-        if(std::filesystem::file_size(path_)>MaxRecordingBytes) throw std::runtime_error("replay exceeds 256 MiB");
+        const auto size=std::filesystem::file_size(path_);
+        if(size>MaxRecordingBytes) throw std::runtime_error("replay exceeds 256 MiB");
         const auto modified=std::filesystem::last_write_time(path_);
-        if(modified_&&*modified_!=modified) Reset();
-        if(!in_.is_open()) {in_.open(path_,std::ios::binary);if(!in_) throw std::runtime_error("cannot open replay");modified_=modified;}
+        if(modified_&&(*modified_!=modified||size_!=size)) Reset();
+        if(!in_.is_open()) {in_.open(path_,std::ios::binary);if(!in_) throw std::runtime_error("cannot open replay");modified_=modified;size_=size;}
         if(ended_) return {ReadState::Ended,{},"replay ended"};
         if(!pending_) {
             std::string text;
@@ -92,12 +94,13 @@ std::unique_ptr<IFrameSource> MakeFrameSource(const RuntimeOptions& o,const std:
     ValidateRuntimeOptions(o);
     if(o.record) {
         const auto output=ResolveDataPath(base,o.recordingPath);
-        const auto input=ResolveDataPath(base,o.kind==SourceKind::Replay?o.replayPath:o.jsonPath);
+        const auto input=ResolveDataPath(base,o.kind==SourceKind::LiveMemory?o.memoryLayoutPath:o.kind==SourceKind::Replay?o.replayPath:o.jsonPath);
         std::error_code ec;
         if(o.kind!=SourceKind::Demo&&(output==input||std::filesystem::equivalent(output,input,ec)))
             throw std::runtime_error("recording output must differ from source input");
     }
     switch(o.kind) {
+    case SourceKind::LiveMemory:return std::make_unique<LiveFrameSource>(ResolveDataPath(base,o.memoryLayoutPath));
     case SourceKind::Demo:return std::make_unique<DemoFrameSource>();
     case SourceKind::JsonFile:return std::make_unique<JsonFileSource>(ResolveDataPath(base,o.jsonPath));
     case SourceKind::Replay:return std::make_unique<ReplaySource>(ResolveDataPath(base,o.replayPath),o.replayLoop);
