@@ -25,3 +25,19 @@ report = {'width': w, 'height': height, 'opaque_pixels': opaque, 'cyan_no_alpha'
           'cyan_bounds': [min(x for x,y in points),min(y for x,y in points),max(x for x,y in points),max(y for x,y in points)] if points else None,
           'cyan_samples': points[:12]}
 print('::notice title=Captured pixel diagnostics::'+json.dumps(report))
+# A small lossless crop, encoded in one check annotation for restricted log clients.
+import base64
+import zlib
+cx, cy = round(w*0.44375), round(h*0.5166666667)
+crop_w, crop_h = 64, 64
+raw = bytearray()
+for y in range(cy-32, cy+32):
+    raw.append(0)
+    for x in range(cx-32, cx+32):
+        p = offset + ((y if height < 0 else h-1-y)*w+x)*4
+        blue,green,red,alpha = b[p:p+4]
+        raw.extend((red,green,blue,alpha))
+def chunk(kind, data):
+    return struct.pack('>I',len(data))+kind+data+struct.pack('>I',zlib.crc32(kind+data)&0xffffffff)
+png = b'\x89PNG\r\n\x1a\n'+chunk(b'IHDR',struct.pack('>IIBBBBB',64,64,8,6,0,0,0))+chunk(b'IDAT',zlib.compress(raw,9))+chunk(b'IEND',b'')
+print('::notice title=Captured crop PNG::'+base64.b64encode(png).decode())
