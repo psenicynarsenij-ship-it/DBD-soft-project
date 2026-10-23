@@ -15,10 +15,12 @@ int main() {
     auto* state=static_cast<fixture::State*>(VirtualAlloc(nullptr,sizeof(fixture::State),MEM_COMMIT|MEM_RESERVE,PAGE_READWRITE));
     SYSTEM_INFO si{};GetSystemInfo(&si);auto* probe=static_cast<char*>(VirtualAlloc(nullptr,si.dwPageSize*2,MEM_COMMIT|MEM_RESERVE,PAGE_READWRITE));
     if(!state || !probe)return 2;DWORD old{};if(!VirtualProtect(probe+si.dwPageSize,si.dwPageSize,PAGE_NOACCESS,&old))return 3;
-    EspFixtureProbe=probe;EspFixtureState=state;
+    EspFixtureProbe=probe;
     state->magic=fixture::Magic;state->version=1;state->capacity=fixture::Capacity;state->headerSize=offsetof(fixture::State,entities);state->camera={0,2,-10};
     state->count=5;
     for(unsigned i=0;i<5;++i){auto& e=state->entities[i];e.id=i+1;e.kind=i;e.flags=1;e.position={static_cast<float>(i)*3-6,0,20};e.top=e.position+esp::Vec3{0,2,0};e.direction={0,0,1};std::strcpy(e.name,"Fixture entity");}
+    state->matrix=esp::Multiply(esp::Perspective(esp::Radians(90),16.0f/9.0f,0.1f,1000),esp::LookAt(state->camera,state->camera+esp::Vec3{0,0,1}));
+    MemoryBarrier();EspFixtureState=state;
     bool running=true,paused=false,bad=false;float yaw=0;std::string commands;HANDLE input=GetStdHandle(STD_INPUT_HANDLE);
     std::cout<<"Controlled fixture PID "<<GetCurrentProcessId()<<"; commands: move camera remove bad restore pause resume quit\n"<<std::flush;
     while(running) {

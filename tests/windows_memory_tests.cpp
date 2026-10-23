@@ -55,11 +55,16 @@ int main(int argc,char** argv){try{
     for(int retry=0;;++retry){try{reader.Attach(layout.executable,child->pid);break;}catch(...){if(retry==100)throw;Sleep(10);}}
     auto module=reader.Module(layout.module);Check(module.size==layout.imageSize && module.timestamp==layout.peTimestamp,"Verified module fingerprint");
     std::uint64_t root=0;for(int i=0;i<100&&!root;++i){root=reader.Value<std::uint64_t>(reader.Export(module,"EspFixtureState"));if(!root)Sleep(10);}Check(root!=0,"Real exported state address");
-    auto direct=esp::GameStateDecoder(layout).Read(reader,root);Check(direct&&direct->entities.size()==5,"ReadProcessMemory decoded actual process objects");
+    std::optional<esp::Frame> direct;for(int i=0;i<100&&!direct;++i){direct=esp::GameStateDecoder(layout).Read(reader,root);if(!direct)Sleep(5);}
+    Check(direct&&direct->entities.size()==5,"ReadProcessMemory decoded actual process objects");
     SYSTEM_INFO system{};GetSystemInfo(&system);auto probe=reader.Value<std::uint64_t>(reader.Export(module,"EspFixtureProbe"));char bytes[16];bool partial=false;
     try{reader.Read(probe+system.dwPageSize-8,bytes,sizeof bytes);}catch(const esp::MemoryReadError& e){partial=e.transferred==8 && e.requested==16 && e.code==ERROR_NOACCESS;}
     Check(partial,"Partial read reports transferred bytes and Win32 error");
     bool bounds=false;try{reader.Read(UINT64_MAX-3,bytes,sizeof bytes);}catch(const esp::MemoryReadError&){bounds=true;}Check(bounds,"Overflow address rejected");
+    auto wrongLayout=layoutPath.parent_path()/"memory.wrong-build.json";
+    auto wrong=json;wrong["image_size"]=layout.imageSize+4096;esp::AtomicWriteText(wrongLayout,wrong.dump());
+    esp::LiveFrameSource mismatched(wrongLayout);auto rejected=mismatched.Poll({});
+    Check(rejected.state==esp::ReadState::Invalid && !rejected.frame,"Mismatched module fingerprint rejected");std::filesystem::remove(wrongLayout);
     auto options=esp::RuntimeOptions{};options.kind=esp::SourceKind::LiveMemory;options.memoryLayoutPath=layoutPath.string();options.fallbackDemo=true;options.pollMs=5;options.staleMs=150;
     esp::RuntimeDataProvider runtime(esp::MakeFrameSource(options,layoutPath.parent_path()),options);
     auto initial=Wait(runtime,[](auto& s){return s.frame->entities.size()==5;});Check(!initial->diagnostics.fallback&&!initial->diagnostics.dbd.connected,"Live does not claim DBD or synthesize Demo");

@@ -16,6 +16,20 @@ jobs:
         run: cmake --build build/native-windows --config Release --parallel 4
       - name: Test actual Windows APIs and DX11
         run: ctest --test-dir build/native-windows -C Release --output-on-failure --output-junit windows-tests.xml
+      - name: Publish readable test diagnostics
+        if: always()
+        shell: pwsh
+        run: |
+          $log = "build/native-windows/Testing/Temporary/LastTest.log"
+          if (Test-Path $log) {
+            $text = Get-Content $log -Raw
+            $text = $text.Replace('%','%25').Replace("`r",'%0D').Replace("`n",'%0A')
+            Write-Output "::notice title=CTest detailed results::$text"
+          }
+          Get-ChildItem build/native-windows/windows-*-report.json -ErrorAction SilentlyContinue | ForEach-Object {
+            $text = (Get-Content $_ -Raw).Replace('%','%25').Replace("`r",'%0D').Replace("`n",'%0A')
+            Write-Output "::notice title=Windows process evidence::$text"
+          }
       - uses: actions/upload-artifact@v4
         if: always()
         with:

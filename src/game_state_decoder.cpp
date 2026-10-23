@@ -47,9 +47,13 @@ MemoryLayout MemoryLayout::Parse(const nlohmann::json& j) {
     return l;
 }
 std::optional<Frame> GameStateDecoder::Read(const IMemoryReader& r,std::uint64_t root) const {
-    const auto& l=layout_;std::vector<char> header(l.headerSize);r.Read(root,header.data(),header.size());
+    const auto& l=layout_;
+    const auto revisionAddress=Add(root,l.revisionOffset);
+    if(revisionAddress%8)throw std::runtime_error("Revision must be aligned to eight bytes");
+    const auto before=r.Value<std::uint64_t>(revisionAddress);if(before&1)return {};
+    std::vector<char> header(l.headerSize);r.Read(root,header.data(),header.size());
     if(Extract<std::uint64_t>(header,l.magicOffset)!=l.magic || Extract<std::uint32_t>(header,l.versionOffset)!=l.version)throw std::runtime_error("Producer magic/version mismatch");
-    auto revision=Extract<std::uint64_t>(header,l.revisionOffset);if(revision&1)return {};
+    auto revision=Extract<std::uint64_t>(header,l.revisionOffset);if(revision!=before || (revision&1))return {};
     auto count=Extract<std::uint32_t>(header,l.countOffset);if(count>l.maxEntities)throw std::runtime_error("Entity count exceeds verified capacity");
     auto address=l.entitiesPointer?Extract<std::uint64_t>(header,l.entitiesOffset):Add(root,l.entitiesOffset);
     std::vector<char> entities(static_cast<std::size_t>(count)*l.stride);if(count)r.Read(address,entities.data(),entities.size());
@@ -62,17 +66,20 @@ std::optional<Frame> GameStateDecoder::Read(const IMemoryReader& r,std::uint64_t
     ValidateFrame(f);return f;
 }
 SourceRead LiveFrameSource::Poll(const ReadContext&) {
+    ReadState failure=ReadState::Invalid;
     try {
+        if(!std::filesystem::is_regular_file(path_))throw std::filesystem::filesystem_error("Memory layout must be a regular file",path_,std::make_error_code(std::errc::no_such_file_or_directory));
         auto stamp=std::filesystem::last_write_time(path_);
         if(!layout_ || !modified_ || stamp!=*modified_) {
             process_.Reset();sequence_.reset();layout_.reset();
             auto size=std::filesystem::file_size(path_);if(size>65536)throw std::runtime_error("Memory layout exceeds 64 KiB");
             std::ifstream input(path_,std::ios::binary);if(!input)throw std::runtime_error("Cannot open memory layout");
-            auto json=nlohmann::json::parse(input);layout_=MemoryLayout::Parse(json);modified_=stamp;
+            auto json=nlohmann::json::parse(input,[](int depth,nlohmann::json::parse_event_t,nlohmann::json&) {if(depth>32)throw std::runtime_error("Memory layout nesting exceeds 32 levels");return true;});layout_=MemoryLayout::Parse(json);modified_=stamp;
         }
         auto& l=*layout_;
         if(!process_.Alive()) {
-            process_.Reset();sequence_.reset();process_.Attach(l.executable,l.pid);
+            process_.Reset();sequence_.reset();failure=ReadState::Disconnected;process_.Attach(l.executable,l.pid);
+            failure=ReadState::Invalid;
             auto m=process_.Module(l.module);if(m.size!=l.imageSize || m.timestamp!=l.peTimestamp || m.machine!=0x8664)throw std::runtime_error("Module fingerprint differs from verified memory layout");
             root_=l.rootExport.empty()?Add(m.base,l.rootRva):process_.Export(m,l.rootExport);
             for(auto offset:l.pointerChain)root_=process_.Value<std::uint64_t>(Add(root_,offset));
@@ -85,6 +92,6 @@ SourceRead LiveFrameSource::Poll(const ReadContext&) {
         sequence_=frame->sequence;return {ReadState::Ready,std::move(frame),status};
     } catch(const MemoryReadError& e) {process_.Reset();sequence_.reset();return {ReadState::Disconnected,{},e.what()};}
       catch(const std::filesystem::filesystem_error& e) {process_.Reset();layout_.reset();sequence_.reset();return {ReadState::Disconnected,{},e.what()};}
-      catch(const std::exception& e) {bool attached=process_.Alive();process_.Reset();sequence_.reset();return {attached?ReadState::Invalid:ReadState::Disconnected,{},e.what()};}
+      catch(const std::exception& e) {process_.Reset();sequence_.reset();return {failure,{},e.what()};}
 }
 }
