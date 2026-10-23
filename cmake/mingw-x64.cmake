@@ -1,0 +1,9 @@
+# Optional Linux cross-compilation; native Visual Studio builds do not use this file.
+set(CMAKE_SYSTEM_NAME Windows)
+set(CMAKE_SYSTEM_PROCESSOR AMD64)
+if(NOT DEFINED CMAKE_CXX_COMPILER)
+  set(CMAKE_CXX_COMPILER x86_64-w64-mingw32-g++)
+endif()
+if(NOT DEFINED CMAKE_RC_COMPILER)
+  set(CMAKE_RC_COMPILER x86_64-w64-mingw32-windres)
+endif()

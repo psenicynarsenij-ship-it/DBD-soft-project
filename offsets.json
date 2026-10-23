@@ -1,0 +1,28 @@
+{
+  "schema_version": 1,
+  "target_game": "Dead by Daylight",
+  "target_version": "10.2.2",
+  "provider": "demo",
+  "real_data_supported": false,
+  "address_encoding": "Hex strings for addresses and offsets; null means unknown, never zero",
+  "process": {"executable": null, "module": null, "build_fingerprint": null},
+  "addresses": {"world_root_rva": null, "camera_root_rva": null},
+  "structures": {
+    "world": {"entity_collection": null, "local_player": null},
+    "entity_collection": {"data": null, "count": null, "entry_stride": null, "entry_is_pointer": null},
+    "entity": {"id": null, "type": null, "name": null, "position": null, "top_position": null, "validity": null},
+    "camera": {"position": null, "view_projection": null},
+    "string": {"encoding": null, "data": null, "length": null}
+  },
+  "pointer_chains": {"world": null, "camera": null},
+  "entity_type_values": {"survivor": null, "killer": null, "generator": null, "hook": null, "exit_gate": null},
+  "conventions": {
+    "real_world_units_per_meter": null,
+    "real_world_up_axis": null,
+    "real_matrix_storage": null,
+    "real_matrix_vector_convention": null,
+    "real_clip_depth_range": null,
+    "real_viewport_source": null,
+    "provider_output": "meters; +Y up; left-handed; row-major matrix times column vector; DirectX depth 0..1"
+  }
+}
