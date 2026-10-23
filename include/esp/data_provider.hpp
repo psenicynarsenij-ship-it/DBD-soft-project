@@ -19,7 +19,12 @@ struct CameraSettings {
     float verticalFovDegrees=60;
 };
 struct Camera { Vec3 position; Matrix4 viewProjection; };
-struct Frame { Camera camera; std::vector<Entity> entities; std::string source; };
+struct Frame {
+    Camera camera;
+    std::vector<Entity> entities;
+    std::string source;
+    std::uint64_t sequence{}, timestampUs{};
+};
 class IDataProvider {
 public:
     virtual ~IDataProvider() = default;

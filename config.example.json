@@ -1,0 +1,52 @@
+{
+  "schema_version": 1,
+  "camera": {
+    "vertical_fov_degrees": 60
+  },
+  "visuals": {
+    "enabled": true,
+    "survivors": true,
+    "killer": true,
+    "generators": true,
+    "hooks": true,
+    "exit_gates": true,
+    "names": true,
+    "distances": true,
+    "max_distance": 150,
+    "max_draw_entities": 1500,
+    "survivor_color": [
+      0.2,
+      0.9,
+      1,
+      1
+    ],
+    "killer_color": [
+      1,
+      0.2,
+      0.25,
+      1
+    ],
+    "killer_direction": true,
+    "killer_cone": false,
+    "killer_cone_degrees": 90,
+    "killer_arrow_length": 6,
+    "killer_arrow_color": [
+      1,
+      0.55,
+      0.15
+    ],
+    "killer_arrow_opacity": 0.9,
+    "killer_cone_opacity": 0.15
+  },
+  "runtime": {
+    "source": "demo",
+    "json_path": "frames.json",
+    "replay_path": "recording.jsonl",
+    "recording_path": "capture.jsonl",
+    "fallback_demo": false,
+    "replay_loop": true,
+    "record": false,
+    "poll_ms": 16,
+    "stale_ms": 1000
+  }
+}

@@ -3,3 +3,8 @@
 /CMakeUserPresets.json
 /config.json
 /imgui.ini
+
+/frames.json
+/capture.jsonl
+/recording.jsonl
+/*.json.tmp

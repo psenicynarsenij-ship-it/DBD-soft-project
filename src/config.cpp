@@ -6,6 +6,8 @@
 namespace esp {
 using nlohmann::json;
 static void Validate(const VisualConfig& c) {
+    ValidateRuntimeOptions(c.runtime);
+    if(c.maxDrawEntities<1||c.maxDrawEntities>static_cast<int>(MaxFrameEntities)) throw std::runtime_error("draw budget must be 1..10000");
     auto range=[](float value,float low,float high,const char* message) {
         if(!std::isfinite(value)||value<low||value>high) throw std::runtime_error(message);
     };
@@ -32,6 +34,23 @@ bool LoadConfig(const std::filesystem::path& path,VisualConfig& c,std::string& s
         next.names=v.at("names"); next.distances=v.at("distances"); next.maxDistance=v.at("max_distance");
         next.survivorColor=v.at("survivor_color").get<std::array<float,4>>();
         next.killerColor=v.at("killer_color").get<std::array<float,4>>();
+        next.maxDrawEntities=v.value("max_draw_entities",next.maxDrawEntities);
+        if(j.contains("runtime")) {
+            const auto& r=j.at("runtime");
+            const auto mode=r.value("source",std::string("demo"));
+            if(mode=="demo") next.runtime.kind=SourceKind::Demo;
+            else if(mode=="json") next.runtime.kind=SourceKind::JsonFile;
+            else if(mode=="replay") next.runtime.kind=SourceKind::Replay;
+            else throw std::runtime_error("runtime source must be demo, json or replay");
+            next.runtime.jsonPath=r.value("json_path",next.runtime.jsonPath);
+            next.runtime.replayPath=r.value("replay_path",next.runtime.replayPath);
+            next.runtime.recordingPath=r.value("recording_path",next.runtime.recordingPath);
+            next.runtime.fallbackDemo=r.value("fallback_demo",next.runtime.fallbackDemo);
+            next.runtime.replayLoop=r.value("replay_loop",next.runtime.replayLoop);
+            next.runtime.record=r.value("record",next.runtime.record);
+            next.runtime.pollMs=r.value("poll_ms",next.runtime.pollMs);
+            next.runtime.staleMs=r.value("stale_ms",next.runtime.staleMs);
+        }
         // Existing schema-1 configs remain valid; absent new fields use defaults.
         if(j.contains("camera")) next.camera.verticalFovDegrees=j.at("camera").value("vertical_fov_degrees",next.camera.verticalFovDegrees);
         next.killerDirection=v.value("killer_direction",next.killerDirection);
@@ -47,10 +66,14 @@ bool LoadConfig(const std::filesystem::path& path,VisualConfig& c,std::string& s
 bool SaveConfig(const std::filesystem::path& path,const VisualConfig& c,std::string& status) {
     try {
         Validate(c);
-        const json j={{"schema_version",1},{"camera",{{"vertical_fov_degrees",c.camera.verticalFovDegrees}}},{"visuals",{
+        const auto& o=c.runtime;
+        const json runtime={{"source",o.kind==SourceKind::Demo?"demo":o.kind==SourceKind::JsonFile?"json":"replay"},
+            {"json_path",o.jsonPath},{"replay_path",o.replayPath},{"recording_path",o.recordingPath},
+            {"fallback_demo",o.fallbackDemo},{"replay_loop",o.replayLoop},{"record",o.record},{"poll_ms",o.pollMs},{"stale_ms",o.staleMs}};
+        const json j={{"runtime",runtime},{"schema_version",1},{"camera",{{"vertical_fov_degrees",c.camera.verticalFovDegrees}}},{"visuals",{
             {"enabled",c.enabled},{"survivors",c.survivors},{"killer",c.killer},
             {"generators",c.generators},{"hooks",c.hooks},{"exit_gates",c.exitGates},
-            {"names",c.names},{"distances",c.distances},{"max_distance",c.maxDistance},
+            {"names",c.names},{"distances",c.distances},{"max_distance",c.maxDistance},{"max_draw_entities",c.maxDrawEntities},
             {"survivor_color",c.survivorColor},{"killer_color",c.killerColor},
             {"killer_direction",c.killerDirection},{"killer_cone",c.killerCone},
             {"killer_cone_degrees",c.killerConeDegrees},{"killer_arrow_length",c.killerArrowLength},
@@ -69,8 +92,8 @@ bool ValidateOffsets(const std::filesystem::path& path,std::string& status) {
         std::ifstream in(path); if(!in) throw std::runtime_error("offsets.json not found");
         const auto j=json::parse(in);
         if(j.at("schema_version")!=1||j.at("target_version")!="10.2.2") throw std::runtime_error("unsupported offsets schema/version");
-        if(j.at("provider")!="demo") throw std::runtime_error("only demo provider is implemented");
-        status="offsets.json: DEMO; real addresses are not configured";return true;
+        if(j.at("provider")!="demo") throw std::runtime_error("game-memory providers are unsupported; use runtime.source for JSON/replay");
+        status="offsets.json: unused by JSON/replay; game addresses are not configured";return true;
     } catch(const std::exception& e) {status=std::string("Offsets: ")+e.what();return false;}
 }
 }
