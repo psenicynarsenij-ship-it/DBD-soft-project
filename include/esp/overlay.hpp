@@ -25,6 +25,7 @@ class Overlay {
     int width_{},height_{};
     static LRESULT CALLBACK WindowProc(HWND,UINT,WPARAM,LPARAM);
     void CreateTarget();
+    void CaptureBackbuffer(const std::filesystem::path&);
     void FitPrimaryMonitor();
 public:
     ~Overlay();
@@ -32,7 +33,7 @@ public:
     bool Poll();
     void SetInteractive(bool);
     bool BeginFrame();
-    void EndFrame();
+    void EndFrame(const std::filesystem::path& capture={});
     float Width() const {return static_cast<float>(width_);}
     float Height() const {return static_cast<float>(height_);}
 };

@@ -88,7 +88,7 @@ void RuntimeDataProvider::Run() {
         d.measuredAt=now;
         d.ageMs=received?std::chrono::duration<double,std::milli>(now-*received).count():0;
         auto displayed=current?current:empty;
-        if(!current&&options_.fallbackDemo&&options_.kind!=SourceKind::Demo) {
+        if(!current&&options_.fallbackDemo&&options_.kind!=SourceKind::Demo&&options_.kind!=SourceKind::LiveMemory) {
             auto sample=fallback.Poll(context);
             sample.frame->source="DEMO FALLBACK - source unavailable";
             displayed=std::make_shared<const Frame>(std::move(*sample.frame));d.fallback=true;fresh=true;

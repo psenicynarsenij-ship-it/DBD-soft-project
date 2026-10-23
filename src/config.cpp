@@ -40,9 +40,11 @@ bool LoadConfig(const std::filesystem::path& path,VisualConfig& c,std::string& s
             const auto mode=r.value("source",std::string("demo"));
             if(mode=="demo") next.runtime.kind=SourceKind::Demo;
             else if(mode=="json") next.runtime.kind=SourceKind::JsonFile;
+            else if(mode=="live_memory") next.runtime.kind=SourceKind::LiveMemory;
             else if(mode=="replay") next.runtime.kind=SourceKind::Replay;
-            else throw std::runtime_error("runtime source must be demo, json or replay");
+            else throw std::runtime_error("runtime source must be demo, json, replay or live_memory");
             next.runtime.jsonPath=r.value("json_path",next.runtime.jsonPath);
+            next.runtime.memoryLayoutPath=r.value("memory_layout_path",next.runtime.memoryLayoutPath);
             next.runtime.replayPath=r.value("replay_path",next.runtime.replayPath);
             next.runtime.recordingPath=r.value("recording_path",next.runtime.recordingPath);
             next.runtime.fallbackDemo=r.value("fallback_demo",next.runtime.fallbackDemo);
@@ -67,8 +69,8 @@ bool SaveConfig(const std::filesystem::path& path,const VisualConfig& c,std::str
     try {
         Validate(c);
         const auto& o=c.runtime;
-        const json runtime={{"source",o.kind==SourceKind::Demo?"demo":o.kind==SourceKind::JsonFile?"json":"replay"},
-            {"json_path",o.jsonPath},{"replay_path",o.replayPath},{"recording_path",o.recordingPath},
+        const json runtime={{"source",o.kind==SourceKind::Demo?"demo":o.kind==SourceKind::JsonFile?"json":o.kind==SourceKind::LiveMemory?"live_memory":"replay"},
+            {"memory_layout_path",o.memoryLayoutPath},{"json_path",o.jsonPath},{"replay_path",o.replayPath},{"recording_path",o.recordingPath},
             {"fallback_demo",o.fallbackDemo},{"replay_loop",o.replayLoop},{"record",o.record},{"poll_ms",o.pollMs},{"stale_ms",o.staleMs}};
         const json j={{"runtime",runtime},{"schema_version",1},{"camera",{{"vertical_fov_degrees",c.camera.verticalFovDegrees}}},{"visuals",{
             {"enabled",c.enabled},{"survivors",c.survivors},{"killer",c.killer},
@@ -92,8 +94,8 @@ bool ValidateOffsets(const std::filesystem::path& path,std::string& status) {
         std::ifstream in(path); if(!in) throw std::runtime_error("offsets.json not found");
         const auto j=json::parse(in);
         if(j.at("schema_version")!=1||j.at("target_version")!="10.2.2") throw std::runtime_error("unsupported offsets schema/version");
-        if(j.at("provider")!="demo") throw std::runtime_error("game-memory providers are unsupported; use runtime.source for JSON/replay");
-        status="offsets.json: unused by JSON/replay; game addresses are not configured";return true;
+        if(j.at("provider")!="demo") throw std::runtime_error("DBD layout is unverified; generic live_memory uses a separate verified layout");
+        status="offsets.json: unused by JSON/replay/live memory; game addresses are not configured";return true;
     } catch(const std::exception& e) {status=std::string("Offsets: ")+e.what();return false;}
 }
 }

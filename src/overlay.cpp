@@ -103,11 +103,12 @@ bool Overlay::BeginFrame() {
     if(IsIconic(window_)) {Sleep(20);return false;}
     ImGui_ImplDX11_NewFrame();ImGui_ImplWin32_NewFrame();ImGui::NewFrame();return true;
 }
-void Overlay::EndFrame() {
+void Overlay::EndFrame(const std::filesystem::path& capture) {
     ImGui::Render();
     const float clear[4]={0,0,0,0};
     context_->OMSetRenderTargets(1,target_.GetAddressOf(),nullptr);context_->ClearRenderTargetView(target_.Get(),clear);
     ImGui_ImplDX11_RenderDrawData(ImGui::GetDrawData());
+    if(!capture.empty()) CaptureBackbuffer(capture);
     const HRESULT result=swap_->Present(1,0);
     if(result==DXGI_STATUS_OCCLUDED) Sleep(20);else Check(result,"Present");
 }

@@ -1,3 +1,11 @@
+# Проверки версии 0.4 — внешний read-only источник
+
+База: `9049b3d` из PR #3. Ветка: `feature/windows-live-memory-reader`.
+
+Добавлены ProcessReader, GameStateDecoder, LiveFrameSource, отдельный Windows-процесс EspMemoryFixture и native Windows CTest. Результаты текущего прогона будут внесены после завершения сборки и CI; старые результаты ниже относятся только к 0.3.1. Работа с реальной сессией DBD не проверена, layout DBD отсутствует.
+
+---
+
 # Проверки версии 0.3.1
 
 Основа — слитый PR #2, merge-коммит b6db33aa74435f8bec5aacab7d96dcca2b832f06. Текущая ветка: feature/dbd-supported-source-assessment. Исходные функции версии 0.3 сохранены.

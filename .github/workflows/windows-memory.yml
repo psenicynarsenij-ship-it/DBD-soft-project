@@ -1,0 +1,28 @@
+name: Windows memory pipeline
+on:
+  push:
+    branches: [feature/windows-live-memory-reader]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-2022
+    steps:
+      - uses: actions/checkout@v4
+      - name: Configure MSVC x64 Release
+        run: cmake -S . -B build/native-windows -A x64 -DESP_BUILD_CONFIG_TESTS=ON -DESP_BUILD_RENDER_TESTS=ON -DESP_BUILD_TOOLS=ON
+      - name: Build
+        run: cmake --build build/native-windows --config Release --parallel 4
+      - name: Test actual Windows APIs and DX11
+        run: ctest --test-dir build/native-windows -C Release --output-on-failure --output-junit windows-tests.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: Windows-x64-Release-and-evidence
+          path: |
+            build/native-windows/Release/
+            build/native-windows/*.bmp
+            build/native-windows/windows-*-report.json
+            build/native-windows/windows-tests.xml
+            build/native-windows/Testing/Temporary/LastTest.log

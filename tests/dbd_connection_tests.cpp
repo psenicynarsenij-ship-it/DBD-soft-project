@@ -25,7 +25,7 @@ template<class Predicate> auto Wait(esp::RuntimeDataProvider& p,Predicate predic
 }
 int main() {
     try {
-        for(const auto kind:{esp::SourceKind::Demo,esp::SourceKind::JsonFile,esp::SourceKind::Replay}) {
+        for(const auto kind:{esp::SourceKind::Demo,esp::SourceKind::JsonFile,esp::SourceKind::Replay,esp::SourceKind::LiveMemory}) {
             Disconnected(esp::DescribeDbdConnection(kind));Disconnected(esp::DescribeDbdConnection(kind,true));
         }
         const auto capability=nlohmann::json::parse(esp::DbdBuildStatusJson());

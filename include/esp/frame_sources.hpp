@@ -4,10 +4,11 @@
 #include <memory>
 
 namespace esp {
-enum class SourceKind { Demo, JsonFile, Replay };
+enum class SourceKind { Demo, JsonFile, Replay, LiveMemory };
 struct RuntimeOptions {
     SourceKind kind=SourceKind::Demo;
     std::string jsonPath="frames.json", replayPath="recording.jsonl", recordingPath="capture.jsonl";
+    std::string memoryLayoutPath="memory.fixture.json";
     bool fallbackDemo=false, replayLoop=true, record=false;
     int pollMs=16, staleMs=1000;
     bool operator==(const RuntimeOptions&) const = default;
