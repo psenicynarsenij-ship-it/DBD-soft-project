@@ -152,8 +152,11 @@ void Recording() {
     Check(replay.Poll(c).state==ReadState::Scheduled,"replay honors recorded timing");
     c.now+=std::chrono::milliseconds(100);Check(replay.Poll(c).frame->sequence==2,"second timed replay frame");
     Check(replay.Poll(c).state==ReadState::Ended,"nonlooping replay ends");
+    const auto unchangedTime=std::filesystem::last_write_time(path);
     {FrameRecorder writer(path);writer.Write(Fixture(3),Clock::now());}
-    Check(replay.Poll(c).frame->sequence==1,"changed replay reopens");
+    std::filesystem::last_write_time(path,unchangedTime); // Explicitly exercise equal filesystem timestamps.
+    auto reopened=replay.Poll(c);
+    Check(reopened.frame&&reopened.frame->sequence==1,"changed replay reopens even with unchanged timestamp");
     c.now+=std::chrono::seconds(1);Check(replay.Poll(c).frame->sequence==2,"appended recording keeps first session");
     Check(replay.Poll(c).frame->sequence==3,"appended session starts a new clock");
     ReplaySource loop(path,true);Check(loop.Poll(c).frame->sequence==1,"loop begins");c.now+=std::chrono::seconds(1);

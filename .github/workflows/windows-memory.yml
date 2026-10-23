@@ -22,9 +22,12 @@ jobs:
         run: |
           $log = "build/native-windows/Testing/Temporary/LastTest.log"
           if (Test-Path $log) {
-            $text = Get-Content $log -Raw
-            $text = $text.Replace('%','%25').Replace("`r",'%0D').Replace("`n",'%0A')
-            Write-Output "::notice title=CTest detailed results::$text"
+            $blocks = (Get-Content $log -Raw) -split '(?m)(?=^\d+/\d+ Testing:)'
+            foreach ($block in $blocks) {
+              if ($block.Trim().Length -eq 0) { continue }
+              $text = $block.Replace('%','%25').Replace("`r",'%0D').Replace("`n",'%0A')
+              Write-Output "::notice title=CTest individual result::$text"
+            }
           }
           Get-ChildItem build/native-windows/windows-*-report.json -ErrorAction SilentlyContinue | ForEach-Object {
             $text = (Get-Content $_ -Raw).Replace('%','%25').Replace("`r",'%0D').Replace("`n",'%0A')

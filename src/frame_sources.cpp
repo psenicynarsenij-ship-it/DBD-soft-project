@@ -62,15 +62,16 @@ bool ReadLine(std::ifstream& in,std::string& text) {
 }
 }
 void ReplaySource::Reset() {
-    in_.close();in_.clear();pending_.reset();modified_.reset();session_.clear();ended_=false;previousElapsed_=firstElapsed_=0;
+    in_.close();in_.clear();pending_.reset();modified_.reset();session_.clear();ended_=false;size_=0;previousElapsed_=firstElapsed_=0;
 }
 SourceRead ReplaySource::Poll(const ReadContext& c) {
     try {
         if(!std::filesystem::is_regular_file(path_)) {Reset();return {ReadState::Disconnected,{},"replay file is missing"};}
-        if(std::filesystem::file_size(path_)>MaxRecordingBytes) throw std::runtime_error("replay exceeds 256 MiB");
+        const auto size=std::filesystem::file_size(path_);
+        if(size>MaxRecordingBytes) throw std::runtime_error("replay exceeds 256 MiB");
         const auto modified=std::filesystem::last_write_time(path_);
-        if(modified_&&*modified_!=modified) Reset();
-        if(!in_.is_open()) {in_.open(path_,std::ios::binary);if(!in_) throw std::runtime_error("cannot open replay");modified_=modified;}
+        if(modified_&&(*modified_!=modified||size_!=size)) Reset();
+        if(!in_.is_open()) {in_.open(path_,std::ios::binary);if(!in_) throw std::runtime_error("cannot open replay");modified_=modified;size_=size;}
         if(ended_) return {ReadState::Ended,{},"replay ended"};
         if(!pending_) {
             std::string text;

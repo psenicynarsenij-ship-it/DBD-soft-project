@@ -52,6 +52,7 @@ public:
 class ReplaySource final : public IFrameSource {
     std::filesystem::path path_;
     bool loop_{};
+    std::uintmax_t size_{};
     std::ifstream in_;
     std::optional<RecordedFrame> pending_;
     std::optional<std::filesystem::file_time_type> modified_;
