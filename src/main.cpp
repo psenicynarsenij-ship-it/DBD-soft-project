@@ -35,7 +35,7 @@ int WINAPI wWinMain(HINSTANCE instance,HINSTANCE,PWSTR,int) {
             for(int i=0;i<8;++i) if(keys.Pressed(VK_F1+i)) *toggles[i]=!*toggles[i];
             overlay.SetInteractive(menuOpen);
             if(!overlay.BeginFrame()) continue;
-            const auto frame=provider->Sample(overlay.Width()/overlay.Height());
+            const auto frame=provider->Sample(overlay.Width()/overlay.Height(),config.camera);
             esp::RenderEntities(frame,config,overlay.Width(),overlay.Height());
             if(menuOpen) esp::RenderMenu(config,menuOpen,configPath,status,offsetsStatus);
             overlay.SetInteractive(menuOpen);overlay.EndFrame();
